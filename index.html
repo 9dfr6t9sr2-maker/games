@@ -1,0 +1,3547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>🎮 等位小游戏</title>
+<style>
+/* ============ RESET & BASE ============ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;
+  --bg:#1a1a2e;--text:#e0e0e0;--text2:#9e9e9e;--text3:#757575;
+  --card:#16213e;--bg2:#0f3460;
+  --primary:#4ecca3;--primary-dark:#3db88a;--accent:#ffd93d;
+  --border:#2a2a4a;--border-light:#1e1e3e;
+  --success:#4ecca3;--error:#ff6b6b;
+  --radius:14px;--shadow:0 2px 16px rgba(0,0,0,0.3);
+  --shadow-lg:0 4px 24px rgba(0,0,0,0.4);
+  padding-bottom:40px;
+}
+
+/* ============ MAIN CONTENT ============ */
+.main{padding:0 16px 32px;max-width:520px;margin:0 auto}
+.tab-content{display:block}
+
+/* Section header */
+.section-header{text-align:center;padding:20px 0 8px}
+.section-header .plan-name{
+  font-size:24px;font-weight:800;letter-spacing:2px;color:var(--text);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.section-header .plan-name .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.section-header .tagline{font-size:13px;color:var(--text2);margin-top:6px}
+
+/* ============ GAME ENTRY ============ */
+.game-room-card {
+  background: var(--card); border-radius: 16px; padding: 20px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15); margin-bottom: 16px; text-align: center;
+}
+.game-room-card h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+.game-room-card .room-desc { font-size: 13px; color: var(--text2); margin-bottom: 16px; }
+
+.room-code-display {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(78,204,163,0.08); border: 2px dashed var(--primary); border-radius: 12px;
+  padding: 14px; margin-bottom: 16px;
+}
+.room-code-display .code-label { font-size: 13px; color: var(--text2); }
+.room-code-display .code-num {
+  font-size: 36px; font-weight: 800; color: var(--primary);
+  letter-spacing: 8px; font-family: monospace;
+  user-select: all;
+}
+.room-code-display .code-copy-btn {
+  background: var(--primary); color: #1a1a2e; border: none;
+  border-radius: 8px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-weight:600;
+}
+
+.players-grid {
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 20px;
+}
+.player-chip {
+  background: rgba(78,204,163,0.1); border-radius: 12px; padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px; font-size: 14px;
+}
+.player-chip .chip-emoji { font-size: 20px; }
+.player-chip .chip-name { font-weight: 600; color: var(--text); }
+.player-chip .chip-you { font-size: 10px; background: var(--primary); color: #1a1a2e; padding: 2px 6px; border-radius: 6px; font-weight:600; }
+
+.game-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+}
+.game-btn {
+  background: var(--card); border: 2px solid var(--border); border-radius: 14px;
+  padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.15s;
+}
+.game-btn:active { transform: scale(0.96); border-color: var(--primary); }
+.game-btn .game-emoji { font-size: 36px; margin-bottom: 6px; }
+.game-btn .game-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.game-btn .game-desc { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.game-btn .game-players { font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+/* ─── Music Toggle ─── */
+.music-btn {
+  position: fixed; top: 12px; right: 12px; z-index: 9999;
+  width: 36px; height: 36px; border-radius: 50%;
+  border: none; background: rgba(78,204,163,0.2);
+  color: var(--primary); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s; backdrop-filter: blur(4px);
+}
+.music-btn:hover { background: rgba(78,204,163,0.4); }
+.music-btn.off { opacity: 0.5; background: rgba(255,255,255,0.1); color: var(--text3); }
+
+.btn-primary {
+  background: var(--primary); color: #1a1a2e; border: none; border-radius: 12px;
+  padding: 14px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer;
+}
+.btn-outline {
+  background: var(--card); color: var(--primary); border: 2px solid var(--primary);
+  border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer;
+}
+.btn-sm { padding: 10px 20px; font-size: 14px; width: auto; border-radius: 10px; }
+.btn-text{background:none;border:none;font-size:14px;cursor:pointer;padding:8px;color:var(--text2)}
+
+.input-room {
+  width: 100%; border: 2px solid var(--border); border-radius: 12px;
+  padding: 14px; font-size: 24px; text-align: center; letter-spacing: 8px;
+  font-family: monospace; font-weight: 700; margin-bottom: 12px;
+  outline: none; -webkit-appearance: none; background: var(--bg); color: var(--text);
+}
+.input-room:focus { border-color: var(--primary); }
+
+.join-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.join-section .or-divider {
+  text-align: center; font-size: 13px; color: var(--text2); margin: 8px 0;
+}
+
+/* ============ DICE ============ */
+.dice-area { text-align: center; padding: 20px 0; }
+.dice-display {
+  width: 100px; height: 100px; background: var(--card); border-radius: 24px;
+  margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;
+  font-size: 56px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s;
+}
+.dice-display.rolling { animation: diceShake 0.6s ease-in-out; }
+@keyframes diceShake {
+  0%,100% { transform: rotate(0deg); }
+  25% { transform: rotate(-20deg) scale(1.1); }
+  75% { transform: rotate(20deg) scale(1.1); }
+}
+.dice-result-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 12px; }
+.dice-player-result {
+  background: var(--card); border-radius: 12px; padding: 10px 14px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.1); text-align: center; min-width: 70px;
+}
+.dice-player-result .dr-name { font-size: 12px; color: var(--text2); }
+.dice-player-result .dr-val { font-size: 28px; font-weight: 800; color: var(--text); }
+.dice-player-result.loser { border: 2px solid var(--primary); background: rgba(78,204,163,0.08); }
+
+.dice-mode-bar { display:flex; gap:8px; justify-content:center; margin-bottom:16px; }
+.dice-mode-btn { padding:8px 16px; border:1px solid var(--border); border-radius:20px; background:var(--card); font-size:13px; cursor:pointer; color:var(--text2); }
+.dice-mode-btn.active { background:var(--primary); color:#1a1a2e; border-color:var(--primary); font-weight:600; }
+.dice-mode-btn:active { transform:scale(0.95); }
+
+.dice-phone-input {
+  width:100%; max-width:280px; padding:12px 16px; border:2px solid var(--border); border-radius:12px;
+  font-size:16px; outline:none; text-align:center; letter-spacing:2px; margin-bottom:12px;
+  background:var(--bg); color:var(--text);
+}
+.dice-phone-input:focus{border-color:var(--primary)}
+
+.dice-ai-players { display:flex; justify-content:space-between; margin-bottom:10px; font-size:13px; font-weight:600; color:var(--text); }
+.dice-ai-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:8px 0; }
+.dice-ai-grid > div { background:var(--card); border-radius:8px; padding:8px; text-align:center; color:var(--text2); font-size:12px; }
+
+/* ============ WHEEL ============ */
+.wheel-area { text-align: center; padding: 10px 0; }
+.wheel-visual {
+  width: 180px; height: 180px; border-radius: 50%; margin: 0 auto 20px;
+  background: conic-gradient(
+    #ff6b6b 0deg 60deg, #ffd93d 60deg 120deg, #6bcb77 120deg 180deg,
+    #4d96ff 180deg 240deg, #ff6b6b 240deg 300deg, #ffd93d 300deg 360deg
+  );
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2); position: relative;
+  transition: transform 3s cubic-bezier(0.2,0.8,0.3,1);
+}
+.wheel-visual::after {
+  content: '▼'; position: absolute; top: -16px; left: 50%;
+  transform: translateX(-50%); font-size: 24px; color: var(--primary);
+}
+.wheel-visual.spinning { transform: rotate(1800deg); }
+.wheel-result { font-size: 16px; font-weight: 700; margin-top: 8px; color: var(--text); }
+.wheel-target { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+/* ============ GOMOKU ============ */
+.gomoku-area { text-align: center; }
+.gomoku-board {
+  display: grid; grid-template-columns: repeat(15, 1fr);
+  width: 100%; max-width: 320px; margin: 0 auto 16px;
+  background: #e8c97a; border-radius: 8px; padding: 2px;
+  aspect-ratio: 1;
+}
+.gomoku-cell {
+  aspect-ratio: 1; background: #e8c97a; border: 0.5px solid #c4a345;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer; position: relative;
+}
+.gomoku-cell.occupied { cursor: default; }
+.gomoku-cell.winline { background: rgba(255,68,68,0.25) !important; }
+.gomoku-cell.last-move::after {
+  content: ''; position: absolute; width: 6px; height: 6px;
+  background: #ff4444; border-radius: 50%; top: 2px; right: 2px;
+}
+.gomoku-stone {
+  width: 75%; height: 75%; border-radius: 50%; display: inline-block;
+}
+.gomoku-stone.black { background: #222; box-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+.gomoku-stone.white { background: #fff; box-shadow: 2px 2px 4px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(0,0,0,0.1); }
+.gomoku-turn { font-size: 14px; color: var(--text2); margin-bottom: 8px; }
+.gomoku-timer-bar{width:100%;height:4px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden}
+.gomoku-timer-fill{height:100%;background:var(--primary);transition:width 0.2s;border-radius:2px}
+.gomoku-timer-fill.urgent{background:var(--error)}
+.gomoku-undo-btn{padding:6px 16px;border:1px solid var(--border);border-radius:10px;background:var(--card);font-size:13px;cursor:pointer;color:var(--text)}
+.gomoku-undo-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* ============ RPS ============ */
+.rps-area { text-align: center; padding: 20px 0; }
+.rps-choice { font-size: 60px; margin: 16px 0; }
+.rps-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.rps-btn {
+  width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--border);
+  background: var(--card); font-size: 36px; cursor: pointer; transition: all 0.15s;
+}
+.rps-btn:active { transform: scale(0.9); border-color: var(--primary); }
+.rps-vs { font-size: 20px; font-weight: 700; color: var(--text); margin: 12px 0; }
+.rps-scoreboard{display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:12px}
+.rps-score-item{text-align:center}
+.rps-score-name{font-size:12px;color:var(--text2)}
+.rps-score-val{font-size:28px;font-weight:700;color:var(--text)}
+.rps-round-label{font-size:12px;color:var(--text2);margin-bottom:6px}
+
+/* ============ COMMON GAME UI ============ */
+.game-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.game-header .back-btn {
+  background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2);
+}
+.game-header .game-round { font-size: 13px; color: var(--text2); }
+.punishment-card {
+  background: rgba(78,204,163,0.06); border-radius: 14px;
+  padding: 16px; margin-top: 16px; text-align: center; border: 1px solid rgba(78,204,163,0.2);
+}
+.punishment-card .punish-label { font-size: 12px; color: var(--primary); margin-bottom: 4px; }
+.punishment-card .punish-text { font-size: 16px; font-weight: 700; color: var(--text); }
+.punishment-card .punish-reward { font-size: 14px; color: var(--accent); margin-top: 6px; font-weight: 600; }
+
+/* ============ SOLO GAMES TABS ============ */
+.solo-game-tabs {
+  display: flex; gap: 8px; margin-bottom: 20px; justify-content: center;
+}
+.solo-game-tab {
+  padding: 10px 24px; border-radius: 24px; border: 1.5px solid var(--border);
+  background: var(--card); font-size: 14px; font-weight: 600; color: var(--text2);
+  cursor: pointer; transition: all 0.2s;
+}
+.solo-game-tab.active { background: var(--primary); color: #1a1a2e; border-color: var(--primary); }
+.solo-game-tab:active { transform: scale(0.95); }
+
+.solo-game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.solo-game-btn {
+  background: var(--card); border: 2px solid var(--border); border-radius: 16px;
+  padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.2s;
+}
+.solo-game-btn:active { transform: scale(0.96); border-color: var(--primary); }
+.solo-game-btn .sg-emoji { font-size: 40px; margin-bottom: 6px; }
+.solo-game-btn .sg-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.solo-game-btn .sg-desc { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+/* ============ MINI GAME CANVAS ============ */
+.minigame-canvas-wrapper {
+  position: relative; width: 100%; margin: 0 auto;
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.minigame-canvas-wrapper .mg-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+}
+.minigame-canvas-wrapper .mg-back {
+  background: none; border: none; font-size: 18px; color: var(--text2); cursor: pointer; padding: 4px;
+}
+.minigame-canvas-wrapper .mg-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.minigame-canvas-wrapper .mg-score { font-size: 13px; color: var(--text2); }
+.minigame-canvas-wrapper .mg-score span { font-weight: 800; color: var(--primary); font-size: 18px; }
+
+.mg-body { padding: 16px; display: flex; flex-direction: column; align-items: center; }
+.mg-canvas { display: block; margin: 0 auto; border-radius: 8px; background: #1a1a2e; }
+
+.mg-controls { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+.mg-btn {
+  padding: 10px 24px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 1px;
+}
+.mg-btn:active { transform: scale(0.95); }
+.mg-btn-primary { background: var(--primary); color: #1a1a2e; }
+.mg-btn-secondary { background: var(--card); color: var(--text); border:1px solid var(--border); }
+.mg-btn-danger { background: var(--error); color: #fff; }
+
+.mg-swipe-hint {
+  font-size: 11px; color: var(--text3); margin-top: 8px; text-align: center;
+}
+
+.mg-game-over {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; background: rgba(0,0,0,0.8);
+  border-radius: var(--radius); z-index: 5;
+}
+.mg-game-over .go-emoji { font-size: 48px; margin-bottom: 8px; }
+.mg-game-over .go-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.mg-game-over .go-score { font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 16px; }
+.mg-game-over .go-btn {
+  padding: 10px 28px; border: none; border-radius: 24px;
+  background: var(--primary); color: #1a1a2e; font-size: 15px; font-weight: 600; cursor: pointer;
+}
+
+/* ============ 2048 SPECIFIC ============ */
+.grid-2048 {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  width: 240px; height: 240px; background: #bbada0; border-radius: 6px; padding: 4px;
+}
+.cell-2048 {
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; border-radius: 4px; font-size: 24px;
+  background: rgba(238,228,218,0.35); transition: all 0.1s;
+}
+.cell-2048.t2 { background: #eee4da; color: #776e65; }
+.cell-2048.t4 { background: #ede0c8; color: #776e65; }
+.cell-2048.t8 { background: #f2b179; color: #f9f6f2; }
+.cell-2048.t16 { background: #f59563; color: #f9f6f2; }
+.cell-2048.t32 { background: #f67c5f; color: #f9f6f2; }
+.cell-2048.t64 { background: #f65e3b; color: #f9f6f2; }
+.cell-2048.t128 { background: #edcf72; color: #f9f6f2; font-size: 18px; }
+.cell-2048.t256 { background: #edcc61; color: #f9f6f2; font-size: 18px; }
+.cell-2048.t512 { background: #edc850; color: #f9f6f2; font-size: 18px; }
+.cell-2048.t1024 { background: #edc53f; color: #f9f6f2; font-size: 14px; }
+.cell-2048.t2048 { background: #edc22e; color: #f9f6f2; font-size: 14px; }
+.cell-2048.t4096 { background: #3c3a32; color: #f9f6f2; font-size: 14px; }
+.cell-2048.t8192 { background: #3c3a32; color: #f9f6f2; font-size: 14px; }
+
+/* ============ GUANDAN (掼蛋) ============ */
+.gd-table {
+  display: grid;
+  grid-template-rows: auto 1fr auto auto auto;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  min-height: 500px;
+  background: #1a3a1a;
+  border-radius: 16px;
+  padding: 8px;
+}
+.gd-player-top { grid-row: 1; grid-column: 1 / 4; display: flex; flex-direction: column; align-items: center; padding: 6px 8px; }
+.gd-middle-row { grid-row: 2; grid-column: 1 / 4; display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 4px; min-height: 100px; }
+.gd-player-left { display: flex; flex-direction: column; align-items: center; padding: 4px; }
+.gd-center { display: flex; flex-direction: column; align-items: center; padding: 4px; }
+.gd-player-right { display: flex; flex-direction: column; align-items: center; padding: 4px; }
+.gd-player-bottom { grid-row: 3; grid-column: 1 / 4; display: flex; flex-direction: column; align-items: center; padding: 4px 8px; }
+.gd-controls-row { grid-row: 4; grid-column: 1 / 4; padding: 4px 0; }
+.gd-result-row { grid-row: 5; grid-column: 1 / 4; }
+
+.player-info {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  white-space: nowrap; flex-wrap: wrap; justify-content: center;
+}
+.player-info .pi-team { font-size: 14px; }
+.player-info .pi-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); }
+.player-info .pi-count { font-size: 11px; color: rgba(255,255,255,0.6); }
+.player-info .pi-status { font-size: 10px; color: #ffd700; }
+.player-info.turn-active { background: rgba(255,215,0,0.15); box-shadow: 0 0 0 2px rgba(255,215,0,0.3); }
+
+.player-played { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; min-height: 40px; padding: 4px 2px; margin-top: 4px; }
+.player-played .no-play { font-size: 10px; color: rgba(255,255,255,0.15); }
+.player-played.prev-round .gd-card.lil { opacity: 0.4; }
+
+.gd-turn-indicator { text-align: center; font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 10px; width: 100%; }
+.gd-turn-indicator.turn1 { background: rgba(78,204,163,0.2); color: #4ecca3; }
+.gd-turn-indicator.turn2 { background: rgba(255,217,61,0.2); color: #ffd93d; }
+.gd-prev-play { font-size: 10px; color: rgba(255,255,255,0.4); text-align: center; margin-top: 4px; padding: 2px 8px; }
+
+#gd-hand { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; padding: 6px; background: rgba(255,255,255,0.06); border-radius: 10px; min-height: 50px; width: 100%; }
+.gd-card {
+  width: 42px; height: 58px; border-radius: 4px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; cursor: pointer; user-select: none;
+  border: 2px solid #ddd; background: #fff; transition: all 0.1s; flex-shrink: 0;
+  position: relative; line-height: 1.1;
+}
+.gd-card .card-rank { font-size: 12px; }
+.gd-card .card-suit { font-size: 10px; }
+.gd-card.red { color: #d32f2f; border-color: #fcc; }
+.gd-card.black { color: #222; border-color: #ccc; }
+.gd-card.joker-big { color: #d32f2f; border-color: #d32f2f; background: #fff5f5; }
+.gd-card.joker-small { color: #1565c0; border-color: #1565c0; background: #f0f4ff; }
+.gd-card.selected { transform: translateY(-8px); border-color: var(--primary); box-shadow: 0 4px 12px rgba(78,204,163,0.3); }
+.gd-card:active { transform: translateY(-4px); }
+.gd-card.played { border-color: #4caf50; background: #e8f5e9; cursor: default; }
+.gd-card.lil { width: 36px; height: 50px; font-size: 12px; cursor: default; margin-left: -6px; }
+.gd-card.lil:first-child { margin-left: 0; }
+.gd-card.lil .card-rank { font-size: 12px; }
+.gd-card.lil .card-suit { font-size: 10px; }
+.gd-card.face-down { background: #2a4a2e; border-color: #3a6a3e; color: rgba(255,255,255,0.3); font-size: 18px; cursor: default; }
+
+.gd-controls { display: flex; gap: 8px; justify-content: center; padding: 6px 0; flex-wrap: wrap; }
+.gd-controls .gd-btn {
+  padding: 8px 18px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.gd-controls .gd-btn:active { transform: scale(0.95); }
+.gd-controls .gd-btn-play { background: var(--primary); color: #1a1a2e; }
+.gd-controls .gd-btn-pass { background: var(--border); color: var(--text2); }
+.gd-controls .gd-btn-hint { background: #e3f2fd; color: #1565c0; }
+.gd-controls .gd-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.gd-result { text-align: center; padding: 10px 0; font-size: 14px; font-weight: 700; }
+.gd-result .gd-win { color: var(--primary); font-size: 18px; }
+.gd-next-btn { margin-top: 10px; padding: 8px 24px; border: none; border-radius: 24px; background: var(--primary); color: #1a1a2e; font-size: 14px; font-weight: 600; cursor: pointer; }
+#gd-debug { font-size: 9px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 2px; min-height: 14px; }
+#gd-force-btn { width: 100%; padding: 3px; font-size: 9px; background: var(--error); color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-top: 1px; }
+
+@media (max-width: 480px) {
+  .gd-card { width: 36px; height: 50px; font-size: 11px; }
+  .gd-card.lil { width: 26px; height: 36px; font-size: 9px; }
+  .gd-card.lil .card-rank { font-size: 9px; }
+  .gd-card.lil .card-suit { font-size: 7px; }
+  .gd-card .card-rank { font-size: 10px; }
+  .gd-card .card-suit { font-size: 9px; }
+  .player-info .pi-name { font-size: 10px; }
+  .player-info .pi-count { font-size: 9px; }
+}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:300;
+  background:rgba(0,0,0,0.85);color:#fff;padding:10px 24px;
+  border-radius:20px;font-size:14px;opacity:0;transition:opacity 0.3s;pointer-events:none;
+}
+.toast.show{opacity:1}
+.toast.error{background:rgba(255,107,107,0.92)}
+.toast.success{background:rgba(78,204,163,0.92)}
+
+/* ============ VICTORY OVERLAY ============ */
+.victory-overlay{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,0.7);
+  display:flex;align-items:center;justify-content:center;
+}
+.victory-modal{
+  background:var(--card);border-radius:var(--radius);padding:32px;
+  text-align:center;max-width:300px;width:90%;box-shadow:var(--shadow-lg);
+}
+.victory-emoji{font-size:64px;margin-bottom:12px}
+.victory-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px}
+.victory-subtitle{font-size:13px;color:var(--text2);margin-bottom:20px}
+.victory-btn{
+  padding:10px 28px;border:none;border-radius:24px;
+  background:var(--primary);color:#1a1a2e;font-size:15px;font-weight:600;cursor:pointer;
+}
+</style>
+</head>
+<body>
+<button class="music-btn" id="musicToggleBtn" onclick="toggleMusic()">🎵</button>
+
+<!-- ============ TAB: 游戏 ============ -->
+<div class="tab-content active" id="tab-game">
+<div class="main">
+
+  <div class="section-header">
+    <div class="plan-name"><span class="dot"></span>等位小游戏<span class="dot"></span></div>
+    <div class="tagline">等菜不无聊，选个游戏玩起来</div>
+  </div>
+
+  <div class="solo-game-tabs">
+    <button class="solo-game-tab active" onclick="switchGameMode('multi',this)" id="solo-tab-multi">🎮 组队游戏</button>
+    <button class="solo-game-tab" onclick="switchGameMode('solo',this)" id="solo-tab-solo">🎯 单人小游戏</button>
+  </div>
+
+  <!-- ====== 等位游戏入口 ====== -->
+  <div id="game-entry">
+
+    <!-- 游戏选择卡片 -->
+    <div id="game-select-screen">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">选一个想玩的</div>
+      <div class="game-grid" style="margin-bottom:16px">
+        <button class="game-btn" onclick="selectGame('dice')">
+          <div class="game-emoji">🎲</div>
+          <div class="game-title">摇骰子</div>
+          <div class="game-desc">比大小定输赢</div>
+          <div class="game-players">2-8人</div>
+        </button>
+        <button class="game-btn" onclick="selectGame('wheel')">
+          <div class="game-emoji">🎡</div>
+          <div class="game-title">命运转盘</div>
+          <div class="game-desc">试试你的运气</div>
+          <div class="game-players">2-8人</div>
+        </button>
+        <button class="game-btn" onclick="selectGame('rps')">
+          <div class="game-emoji">✊</div>
+          <div class="game-title">猜拳对决</div>
+          <div class="game-desc">石头剪刀布</div>
+          <div class="game-players">2人</div>
+        </button>
+        <button class="game-btn" onclick="selectGame('gomoku')">
+          <div class="game-emoji">⚫</div>
+          <div class="game-title">五子棋</div>
+          <div class="game-desc">两人对战</div>
+          <div class="game-players">2人</div>
+        </button>
+        <button class="game-btn" onclick="selectGame('guandan')">
+          <div class="game-emoji">🃏</div>
+          <div class="game-title">掼蛋</div>
+          <div class="game-desc">四人组队对战</div>
+          <div class="game-players">4人</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 创建/加入房间 / 模式选择 -->
+    <div id="game-room-screen" style="display:none">
+      <div style="text-align:center;margin-bottom:8px">
+        <span style="font-size:32px" id="selected-game-emoji">🎲</span>
+        <div style="font-size:13px;color:var(--text2)" id="selected-game-name">摇骰子</div>
+      </div>
+      <div id="mode-select" class="game-room-card">
+        <h3>🎮 选择模式</h3>
+        <div class="room-desc">一个人玩还是和朋友一起？</div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" id="mode-btn-ai" style="flex:1;font-size:14px;padding:16px 10px;line-height:1.4">
+            🤖 单人AI<br><span style="font-size:11px;font-weight:400">和电脑对战</span>
+          </button>
+          <button class="btn-outline" id="mode-btn-multi" style="flex:1;font-size:14px;padding:16px 10px;line-height:1.4">
+            🌐 联机对战<br><span style="font-size:11px;font-weight:400">和朋友一起玩</span>
+          </button>
+        </div>
+      </div>
+      <div id="gd-mode-select" class="game-room-card" style="display:none">
+        <h3>🎮 掼蛋 · 选择模式</h3>
+        <div class="room-desc">一个人玩还是和朋友一起？</div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" onclick="startGuandanGame('single')" style="flex:1;font-size:14px;padding:16px 10px;line-height:1.4">
+            🧠 单人模式<br><span style="font-size:11px;font-weight:400">对战3个AI电脑</span>
+          </button>
+          <button class="btn-outline" onclick="showGuandanRoom()" style="flex:1;font-size:14px;padding:16px 10px;line-height:1.4">
+            👥 多人模式<br><span style="font-size:11px;font-weight:400">创建房间邀请朋友</span>
+          </button>
+        </div>
+      </div>
+      <div id="multiplayer-room" style="display:none">
+        <div class="game-room-card">
+          <h3>创建房间</h3>
+          <div class="room-desc">创建一个新房间<br>邀请朋友扫码加入</div>
+          <input type="text" class="input-room" id="input-nickname" placeholder="你的昵称" maxlength="8" style="font-size:16px;letter-spacing:1px;margin-bottom:10px">
+          <button class="btn-primary" onclick="createGameRoom()" style="margin-bottom:8px">创建房间</button>
+        </div>
+        <div class="join-section">
+          <div class="or-divider">或者</div>
+          <input type="text" class="input-room" id="input-room-code" placeholder="输入4位房间码" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+          <button class="btn-outline btn-sm" onclick="joinGameRoom()" style="width:100%;margin-top:4px">加入房间</button>
+        </div>
+      </div>
+      <button class="btn-text" onclick="backToGameSelect()" style="width:100%;margin-top:8px">换一个游戏</button>
+    </div>
+  </div>
+
+  <!-- ====== 游戏大厅 ====== -->
+  <div id="game-lobby" style="display:none">
+    <div class="game-header">
+      <button class="back-btn" onclick="leaveGameRoom()">← 退出</button>
+      <span style="font-size:14px;font-weight:600;color:var(--text)">🎮 桌游派对</span>
+      <span style="font-size:13px;color:var(--text2)">#{room_code}</span>
+    </div>
+    <div class="game-room-card">
+      <div class="room-code-display">
+        <span class="code-label">房间码</span>
+        <span class="code-num" id="lobby-code"></span>
+        <button class="code-copy-btn" onclick="copyRoomCode()">复制</button>
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:8px">告诉朋友这个码，他们扫码后输入即可加入</div>
+      <div class="players-grid" id="lobby-players"></div>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <button class="btn-primary" id="lobby-start-btn" onclick="startSelectedGame()" style="font-size:18px;padding:14px 32px">开始游戏</button>
+      <div style="font-size:12px;color:var(--text2);margin-top:6px" id="lobby-game-hint">等待所有人加入后开始</div>
+    </div>
+  </div>
+
+  <!-- ====== 骰子游戏 ====== -->
+  <div id="game-dice" style="display:none">
+    <div class="game-header">
+      <button class="back-btn" onclick="backToLobby()">← 返回</button>
+      <span style="font-size:14px;font-weight:600">🎲 摇骰子</span>
+      <span class="game-round" id="dice-round">第1轮</span>
+    </div>
+    <div class="dice-area">
+      <div class="dice-mode-bar" id="dice-mode-bar" style="display:none"></div>
+      <div id="dice-party-area">
+        <div class="dice-display" id="dice-display">🎲</div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:12px" id="dice-hint">点击骰子开始摇</div>
+        <button class="btn-primary btn-sm" id="dice-roll-btn" onclick="rollDice()">🎲 摇！</button>
+        <div class="dice-result-list" id="dice-results"></div>
+        <div id="dice-punishment"></div>
+      </div>
+      <!-- AI 对战模式 (hidden by default) -->
+      <div id="dice-ai-mode" style="display:none">
+        <div class="dice-ai-players">
+          <span id="dice-ai-p1-name">🧑 你</span>
+          <span id="dice-ai-p2-name">🤖 AI-2</span>
+          <span id="dice-ai-p3-name">🤖 AI-3</span>
+          <span id="dice-ai-p4-name">🤖 AI-4</span>
+        </div>
+        <div class="dice-display" id="dice-ai-display" style="font-size:64px;margin:10px 0">🎲</div>
+        <button class="btn-primary btn-sm" id="dice-ai-roll-btn" onclick="rollDiceAI()">🎲 AI对决！</button>
+        <div class="dice-result-list" id="dice-ai-results">
+          <div style="font-size:12px;color:var(--text2);margin:8px 0">等待摇骰...</div>
+        </div>
+        <div class="dice-ai-grid">
+          <div><span id="dice-ai-p1-roll">-</span><br><small>你</small></div>
+          <div><span id="dice-ai-p2-roll">-</span><br><small>AI-2</small></div>
+          <div><span id="dice-ai-p3-roll">-</span><br><small>AI-3</small></div>
+          <div><span id="dice-ai-p4-roll">-</span><br><small>AI-4</small></div>
+        </div>
+        <div id="dice-ai-punishment" style="margin-top:8px;padding:10px;background:var(--card);border-radius:10px;font-size:13px;text-align:center;color:var(--text)">🎯 等待结果...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 命运转盘 ====== -->
+  <div id="game-wheel" style="display:none">
+    <div class="game-header">
+      <button class="back-btn" onclick="backToLobby()">← 返回</button>
+      <span style="font-size:14px;font-weight:600">🎡 命运转盘</span>
+      <span class="game-round" id="wheel-round">第1轮</span>
+    </div>
+    <div class="wheel-area">
+      <div class="wheel-visual" id="wheel-visual"></div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:12px">指针停在谁，谁接受命运</div>
+      <button class="btn-primary btn-sm" id="wheel-spin-btn" onclick="spinWheel()">🎡 转动转盘！</button>
+      <div class="wheel-result" id="wheel-result"></div>
+      <div class="wheel-target" id="wheel-target"></div>
+      <div id="wheel-punishment"></div>
+      <div id="wheel-ai-mode" style="display:none">
+        <div style="display:flex;justify-content:space-around;margin-bottom:10px;font-size:13px;font-weight:600;color:var(--text)">
+          <span id="wheel-ai-p1-name">🧑 你</span>
+          <span id="wheel-ai-p2-name">🤖 AI-2</span>
+          <span id="wheel-ai-p3-name">🤖 AI-3</span>
+          <span id="wheel-ai-p4-name">🤖 AI-4</span>
+        </div>
+        <div class="wheel-visual" id="wheel-ai-visual" style="margin:10px 0">🎡</div>
+        <button class="btn-primary btn-sm" id="wheel-ai-spin-btn" onclick="spinWheelAI()">🎡 AI转盘！</button>
+        <div class="wheel-result" id="wheel-ai-result" style="font-size:14px;color:var(--text);margin:10px 0;text-align:center">点击转动转盘</div>
+        <div class="wheel-target" id="wheel-ai-target" style="margin-top:8px;padding:10px;background:var(--card);border-radius:10px;font-size:14px;text-align:center;color:var(--text)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 五子棋 ====== -->
+  <div id="game-gomoku" style="display:none">
+    <div class="game-header">
+      <button class="back-btn" onclick="backToLobby()">← 返回</button>
+      <span style="font-size:14px;font-weight:600">⚫ 五子棋</span>
+      <span style="font-size:13px;color:var(--text2)" id="gomoku-turn-text"></span>
+    </div>
+    <div class="gomoku-area">
+      <div class="gomoku-timer-bar"><div class="gomoku-timer-fill" id="gomoku-timer-fill"></div></div>
+      <div class="gomoku-turn" id="gomoku-turn-info">等待开始...</div>
+      <div style="margin-bottom:6px"><button class="gomoku-undo-btn" id="gomoku-undo-btn" onclick="gomokuRequestUndo()" disabled>↩ 悔棋</button></div>
+      <div class="gomoku-board" id="gomoku-board"></div>
+      <div id="gomoku-result"></div>
+      <div id="gomoku-ai-mode" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;color:var(--text)">
+          <span id="gomoku-ai-turn" style="font-weight:600">🧑 你的回合</span>
+          <span id="gomoku-ai-status" style="color:var(--text2);font-size:12px">你 vs AI</span>
+        </div>
+        <div class="gomoku-board" id="gomoku-ai-board" style="width:100%;max-width:350px;margin:0 auto"></div>
+        <div style="display:flex;justify-content:center;gap:10px;margin:8px 0">
+          <button class="gomoku-undo-btn" id="gomoku-ai-undo-btn" onclick="gomokuAIUndo()" disabled>↩ 悔棋</button>
+        </div>
+        <div id="gomoku-ai-result" style="margin-top:8px;padding:10px;background:var(--card);border-radius:10px;font-size:13px;text-align:center;color:var(--text)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 猜拳 ====== -->
+  <div id="game-rps" style="display:none">
+    <div class="game-header">
+      <button class="back-btn" onclick="backToLobby()">← 返回</button>
+      <span style="font-size:14px;font-weight:600">✊ 猜拳对决</span>
+      <span style="font-size:13px;color:var(--text2)">两人对战</span>
+    </div>
+    <div class="rps-area">
+      <div class="rps-round-label" id="rps-round-label">三拳两胜 · 第1局</div>
+      <div class="rps-scoreboard" id="rps-scoreboard">
+        <div class="rps-score-item">
+          <div class="rps-score-name" id="rps-p1-name">你</div>
+          <div class="rps-score-val" id="rps-p1-score">0</div>
+        </div>
+        <div style="font-size:20px;color:var(--text2);line-height:56px">:</div>
+        <div class="rps-score-item">
+          <div class="rps-score-name" id="rps-p2-name">对手</div>
+          <div class="rps-score-val" id="rps-p2-score">0</div>
+        </div>
+      </div>
+      <div class="rps-choice" id="rps-my-choice">🤔</div>
+      <div class="rps-btns">
+        <button class="rps-btn" id="rps-btn-rock" onclick="rpsChoose('rock')">✊</button>
+        <button class="rps-btn" id="rps-btn-scissors" onclick="rpsChoose('scissors')">✌️</button>
+        <button class="rps-btn" id="rps-btn-paper" onclick="rpsChoose('paper')">🖐️</button>
+      </div>
+      <div class="rps-vs" id="rps-result-text"></div>
+      <div id="rps-ai-mode" style="display:none">
+        <div class="rps-scoreboard" id="rps-ai-scoreboard" style="display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:8px">
+          <div class="rps-score-item" style="text-align:center">
+            <div class="rps-score-name" style="font-size:12px;color:var(--text2)">🧑 你</div>
+            <div class="rps-score-val" id="rps-ai-my-score" style="font-size:28px;font-weight:700;color:var(--text)">0</div>
+          </div>
+          <div style="font-size:20px;color:var(--text2);line-height:56px">:</div>
+          <div class="rps-score-item" style="text-align:center">
+            <div class="rps-score-name" style="font-size:12px;color:var(--text2)">🤖 AI</div>
+            <div class="rps-score-val" id="rps-ai-opp-score" style="font-size:28px;font-weight:700;color:var(--text)">0</div>
+          </div>
+        </div>
+        <div class="rps-round-label" id="rps-ai-round" style="font-size:12px;color:var(--text2);margin-bottom:6px">第1局 · 三局两胜</div>
+        <div class="rps-choice" id="rps-ai-my-choice" style="font-size:48px;margin:6px 0">🤔</div>
+        <div class="rps-btns" style="margin:6px 0">
+          <button class="rps-btn" id="rps-ai-btn-rock" onclick="rpsAIChoose('rock')">✊</button>
+          <button class="rps-btn" id="rps-ai-btn-scissors" onclick="rpsAIChoose('scissors')">✌️</button>
+          <button class="rps-btn" id="rps-ai-btn-paper" onclick="rpsAIChoose('paper')">🖐️</button>
+        </div>
+        <div class="rps-vs" id="rps-ai-result-text" style="margin-top:6px;padding:8px;background:var(--card);border-radius:10px;font-size:13px;text-align:center;color:var(--text)">选择你的招式</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 掼蛋 ====== -->
+  <div id="game-guandan" style="display:none">
+    <div class="game-header">
+      <button class="back-btn" onclick="backToLobby()">← 返回</button>
+      <span style="font-size:14px;font-weight:600">🃏 掼蛋</span>
+      <span style="font-size:13px;color:var(--text2)">本地4人</span>
+    </div>
+    <div class="gd-table" id="gd-table">
+      <div class="gd-player-top" id="gd-player-2">
+        <div class="player-info" id="gd-p2-info">
+          <span class="pi-team" id="gd-p2-team">🍃</span>
+          <span class="pi-name" id="gd-p2-name">AI小慧</span>
+          <span class="pi-count" id="gd-p2-count">27张</span>
+          <span class="pi-status" id="gd-p2-status"></span>
+        </div>
+        <div class="player-played" id="gd-played-2"></div>
+      </div>
+      <div class="gd-middle-row">
+        <div class="gd-player-left" id="gd-player-3">
+          <div class="player-info" id="gd-p3-info">
+            <span class="pi-team" id="gd-p3-team">🔥</span>
+            <span class="pi-name" id="gd-p3-name">AI小灵</span>
+            <span class="pi-count" id="gd-p3-count">27张</span>
+            <span class="pi-status" id="gd-p3-status"></span>
+          </div>
+          <div class="player-played" id="gd-played-3"></div>
+        </div>
+        <div class="gd-center">
+          <div class="gd-turn-indicator" id="gd-turn-indicator">准备开始</div>
+          <div class="gd-prev-play" id="gd-prev-play"></div>
+        </div>
+        <div class="gd-player-right" id="gd-player-1">
+          <div class="player-info" id="gd-p1-info">
+            <span class="pi-team" id="gd-p1-team">🔥</span>
+            <span class="pi-name" id="gd-p1-name">AI小智</span>
+            <span class="pi-count" id="gd-p1-count">27张</span>
+            <span class="pi-status" id="gd-p1-status"></span>
+          </div>
+          <div class="player-played" id="gd-played-1"></div>
+        </div>
+      </div>
+      <div class="gd-player-bottom" id="gd-player-0">
+        <div class="player-info" id="gd-p0-info">
+          <span class="pi-team" id="gd-p0-team">🍃</span>
+          <span class="pi-name" id="gd-p0-name">我</span>
+          <span class="pi-count" id="gd-p0-count">27张</span>
+          <span class="pi-status" id="gd-p0-status"></span>
+        </div>
+        <div class="player-played" id="gd-played-0"></div>
+        <div id="gd-all-plays-inline" style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center;align-items:center;padding:6px 4px;margin:2px 0;background:rgba(0,0,0,0.25);border-radius:8px;min-height:44px;width:100%">
+          <span style="color:rgba(255,255,255,0.3);font-size:11px">🃏 出牌区</span>
+        </div>
+        <div class="gd-hand" id="gd-hand"></div>
+      </div>
+      <div id="gd-all-plays" style="grid-row:4;grid-column:1/4;background:rgba(0,0,0,0.3);border-radius:8px;padding:4px 6px;min-height:30px;margin:2px 0">
+        <div id="gd-all-plays-content" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;font-size:11px;color:rgba(255,255,255,0.5)">等待出牌...</div>
+      </div>
+      <div class="gd-controls-row">
+        <div class="gd-controls" id="gd-controls">
+          <button class="gd-btn gd-btn-play" id="gd-btn-play" onclick="gdPlayCards()" disabled>出牌</button>
+          <button class="gd-btn gd-btn-pass" id="gd-btn-pass" onclick="gdPass()" disabled>不要</button>
+          <button class="gd-btn gd-btn-hint" id="gd-btn-hint" onclick="gdHint()" disabled>提示</button>
+          <button class="gd-btn gd-btn-sort" id="gd-btn-sort" onclick="gdSortHand()" style="background:rgba(78,204,163,0.15);color:#4ecca3">🔀 理牌</button>
+        </div>
+      </div>
+      <div class="gd-result-row">
+        <div class="gd-result" id="gd-result" style="display:none"></div>
+        <div id="gd-plays-text" style="font-size:11px;color:rgba(255,255,255,0.6);text-align:center;margin:4px 0;padding:4px;background:rgba(0,0,0,0.2);border-radius:6px;min-height:20px">🃏 点「发牌」开始游戏</div>
+        <div id="gd-debug" style="font-size:10px;color:rgba(255,255,255,0.4);text-align:center;margin-top:4px;min-height:16px"></div>
+        <button id="gd-force-btn">⚠️ 卡住点我 - 强制下一步</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 单人小游戏 - 选择界面 ====== -->
+  <div id="solo-game-select" style="display:none">
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;text-align:center">等位不无聊，选个小游戏</div>
+    <div class="solo-game-grid" style="margin-bottom:16px">
+      <button class="solo-game-btn" onclick="startSoloGame('snake')">
+        <div class="sg-emoji">🐍</div>
+        <div class="sg-title">贪吃蛇</div>
+        <div class="sg-desc">经典吃蛇闯关</div>
+      </button>
+      <button class="solo-game-btn" onclick="startSoloGame('tetris')">
+        <div class="sg-emoji">🧱</div>
+        <div class="sg-title">俄罗斯方块</div>
+        <div class="sg-desc">堆叠消除</div>
+      </button>
+      <button class="solo-game-btn" onclick="startSoloGame('2048')">
+        <div class="sg-emoji">🔢</div>
+        <div class="sg-title">2048</div>
+        <div class="sg-desc">合成数字挑战</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ====== 贪吃蛇 ====== -->
+  <div id="solo-snake" style="display:none">
+    <div class="minigame-canvas-wrapper">
+      <div class="mg-header">
+        <button class="mg-back" onclick="backToSoloSelect()">← 返回</button>
+        <span class="mg-title">🐍 贪吃蛇</span>
+        <span class="mg-score">分数: <span id="snake-score">0</span></span>
+      </div>
+      <div class="mg-body">
+        <canvas id="snake-canvas" class="mg-canvas" width="300" height="300"></canvas>
+        <div class="mg-controls">
+          <button class="mg-btn mg-btn-primary" id="snake-start-btn" onclick="snakeStart()">开始游戏</button>
+          <button class="mg-btn mg-btn-danger" id="snake-pause-btn" onclick="snakeTogglePause()" style="display:none">暂停</button>
+        </div>
+        <div class="mg-swipe-hint" id="snake-hint">方向键 / 滑动控制方向</div>
+      </div>
+      <div class="mg-game-over" id="snake-gameover" style="display:none">
+        <div class="go-emoji">💀</div>
+        <div class="go-title">游戏结束</div>
+        <div class="go-score" id="snake-final-score">得分: 0</div>
+        <button class="go-btn" onclick="snakeStart()">再来一局</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 俄罗斯方块 ====== -->
+  <div id="solo-tetris" style="display:none">
+    <div class="minigame-canvas-wrapper">
+      <div class="mg-header">
+        <button class="mg-back" onclick="backToSoloSelect()">← 返回</button>
+        <span class="mg-title">🧱 俄罗斯方块</span>
+        <span class="mg-score">分数: <span id="tetris-score">0</span></span>
+      </div>
+      <div class="mg-body" style="flex-direction:row;gap:12px;align-items:flex-start;justify-content:center;flex-wrap:wrap">
+        <canvas id="tetris-canvas" class="mg-canvas" width="200" height="400"></canvas>
+        <div style="text-align:center">
+          <canvas id="tetris-next" class="mg-canvas" width="80" height="80" style="background:#1a1a2e;border-radius:6px;margin-bottom:10px"></canvas>
+          <div class="mg-controls" style="flex-direction:column;gap:6px;margin-top:0">
+            <button class="mg-btn mg-btn-primary" id="tetris-start-btn" onclick="tetrisStart()">开始游戏</button>
+            <button class="mg-btn mg-btn-danger" id="tetris-pause-btn" onclick="tetrisTogglePause()" style="display:none">暂停</button>
+          </div>
+          <div class="mg-swipe-hint" style="margin-top:8px">方向键移动 · ↑旋转</div>
+        </div>
+      </div>
+      <div class="mg-game-over" id="tetris-gameover" style="display:none">
+        <div class="go-emoji">💥</div>
+        <div class="go-title">游戏结束</div>
+        <div class="go-score" id="tetris-final-score">得分: 0</div>
+        <button class="go-btn" onclick="tetrisStart()">再来一局</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 2048 ====== -->
+  <div id="solo-2048" style="display:none">
+    <div class="minigame-canvas-wrapper">
+      <div class="mg-header">
+        <button class="mg-back" onclick="backToSoloSelect()">← 返回</button>
+        <span class="mg-title">🔢 2048</span>
+        <span class="mg-score">分数: <span id="g2048-score">0</span></span>
+      </div>
+      <div class="mg-body">
+        <div class="grid-2048" id="g2048-grid"></div>
+        <div class="mg-controls">
+          <button class="mg-btn mg-btn-primary" id="g2048-start-btn" onclick="g2048Start()">新游戏</button>
+        </div>
+        <div class="mg-swipe-hint">方向键 / 滑动移动方块</div>
+      </div>
+      <div class="mg-game-over" id="g2048-gameover" style="display:none">
+        <div class="go-emoji">🎯</div>
+        <div class="go-title" id="g2048-go-title">游戏结束</div>
+        <div class="go-score" id="g2048-final-score">得分: 0</div>
+        <button class="go-btn" onclick="g2048Start()">再来一局</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ TOAST ============
+function showToast(msg, type) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + (type || '');
+  setTimeout(function() { el.classList.add('show'); }, 10);
+  setTimeout(function() { el.classList.remove('show'); }, 2500);
+}
+
+// ============ 游戏Tab ============
+var GAME_WS_URL = (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.hostname + '/game/ws';
+var GAME_API = '/game/api';
+
+var gs = {
+  ws: null,
+  pid: 'p' + Math.random().toString(36).slice(2,8),
+  roomCode: null,
+  game: null,
+  selectedGame: null,
+};
+
+function getGameNickname() {
+  var input = document.getElementById('input-nickname');
+  var name = (input.value || '').trim();
+  return name || ('玩家' + Math.floor(Math.random()*9000+1000));
+}
+
+function connectWS() {
+  if (gs.ws && gs.ws.readyState === WebSocket.OPEN) {
+    if (gs._pendingSend) { var cb = gs._pendingSend; gs._pendingSend = null; cb(); }
+    return;
+  }
+  if (gs.ws && gs.ws.readyState === WebSocket.CONNECTING) return;
+  gs.ws = new WebSocket(GAME_WS_URL);
+  gs.ws.onopen = function() {
+    console.log('[GameWS] 已连接');
+    if (gs._pendingSend) { var cb = gs._pendingSend; gs._pendingSend = null; cb(); }
+  };
+  gs.ws.onmessage = handleGameMessage;
+  gs.ws.onclose = function() { console.log('[GameWS] 断开, 2s后重连...'); setTimeout(connectWS, 2000); };
+  gs.ws.onerror = function(e) { console.log('[GameWS] 连接错误'); };
+}
+
+function sendGame(msg) {
+  if (gs.ws && gs.ws.readyState === WebSocket.OPEN) {
+    gs.ws.send(JSON.stringify(msg));
+    return;
+  }
+  gs._pendingSend = function() { gs.ws.send(JSON.stringify(msg)); };
+  connectWS();
+}
+
+function handleGameMessage(e) {
+  var msg = JSON.parse(e.data);
+  var type = msg.type;
+
+  if (type === 'room_created' || type === 'room_joined') {
+    gs.pid = msg.pid;
+    gs.roomCode = msg.room.code;
+    document.getElementById('game-entry').style.display = 'none';
+    document.getElementById('game-room-screen').style.display = 'none';
+    document.getElementById('lobby-code').textContent = msg.room.code;
+    var is2p = msg.room.game === 'gomoku' || msg.room.game === 'rps';
+    if (is2p && (!msg.room.players || msg.room.players.length < 2)) {
+      document.getElementById('game-lobby').style.display = 'block';
+      document.getElementById('lobby-game-hint').textContent = '等待对手扫码加入...';
+    }
+    renderLobbyPlayers(msg.room.players);
+  }
+
+  if (type === 'room_updated') {
+    renderLobbyPlayers(msg.room.players);
+  }
+
+  if (type === 'game_started') {
+    gs.game = msg.game;
+    document.getElementById('game-lobby').style.display = 'none';
+    hideAllGamePanels();
+    if (msg.game === 'dice') showGamePanel('game-dice');
+    if (msg.game === 'wheel') showGamePanel('game-wheel');
+    if (msg.game === 'gomoku') showGamePanel('game-gomoku');
+    if (msg.game === 'rps') showGamePanel('game-rps');
+    if (msg.game === 'guandan') showGamePanel('game-guandan');
+  }
+
+  if (type === 'dice_roll') {
+    document.getElementById('dice-hint').textContent = msg.name + ' 已摇！';
+  }
+
+  if (type === 'dice_result') {
+    var d = document.getElementById('dice-display');
+    d.textContent = ['','⚀','⚁','⚂','⚃','⚄','⚅'][msg.value];
+    d.classList.add('rolling');
+    setTimeout(function() { d.classList.remove('rolling'); }, 600);
+    document.getElementById('dice-hint').textContent = '你摇了 ' + msg.value + ' 点';
+    document.getElementById('dice-roll-btn').style.display = 'none';
+  }
+
+  if (type === 'dice_reveal') {
+    document.getElementById('dice-roll-btn').style.display = 'inline-block';
+    document.getElementById('dice-roll-btn').disabled = false;
+    var html = msg.results.map(function(r) {
+      return '<div class="dice-player-result' + (msg.loser_pids.includes(r.pid) ? ' loser' : '') + '">' +
+      '<div class="dr-name">' + r.name + '</div>' +
+      '<div class="dr-val">' + ['','⚀','⚁','⚂','⚃','⚄','⚅'][r.value] + '</div></div>';
+    }).join('');
+    document.getElementById('dice-results').innerHTML = html;
+
+    var punishHtml = '<div class="punishment-card"><div class="punish-label">😈 ' + msg.loser_text + '</div><div class="punish-text">' + msg.punishment.text + '</div>';
+    if (msg.reward) punishHtml += '<div class="punish-reward">🎁 幸运奖励: ' + msg.reward.text + '</div>';
+    punishHtml += '</div>';
+    document.getElementById('dice-punishment').innerHTML = punishHtml;
+    document.getElementById('dice-round').textContent = '第' + gs._diceRound + '轮';
+  }
+
+  if (type === 'dice_solo') {
+    var emojis = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
+    document.getElementById('dice-display').textContent = emojis[msg.value];
+    document.getElementById('dice-hint').textContent = msg.name + ' 摇了 ' + msg.value + ' 点';
+  }
+
+  if (type === 'dice_mode_set') {}
+
+  if (type === 'wheel_result') {
+    document.getElementById('wheel-visual').classList.remove('spinning');
+    document.getElementById('wheel-spin-btn').disabled = false;
+    document.getElementById('wheel-target').textContent = '🎯 ' + msg.target_name;
+    document.getElementById('wheel-result').textContent = msg.result.text;
+    document.getElementById('wheel-round').textContent = '第' + msg.round + '轮';
+    var typelabel = msg.result.type === 'free' ? '🎁 福利' : msg.result.type === 'spend' ? '💸 请客' : msg.result.type === 'content' ? '📸 拍片' : msg.result.type === 'truth' ? '💬 真心话' : '😜 整活';
+    document.getElementById('wheel-punishment').innerHTML = '<div class="punishment-card"><div class="punish-label">' + typelabel + '</div><div class="punish-text">' + msg.result.text + '</div></div>';
+  }
+
+  if (type === 'gomoku_start') {
+    gs.gomokuTimer = msg.timer || 30;
+    gs.gomokuTimerStart = Date.now();
+    updateGomokuTimer();
+    renderGomokuBoard(msg.board);
+    document.getElementById('gomoku-turn-info').textContent = '⚫ ' + (msg.turn === gs.pid ? '你的回合' : '等待对方');
+    document.getElementById('gomoku-undo-btn').disabled = true;
+  }
+
+  if (type === 'gomoku_update') {
+    gs.gomokuTimerStart = Date.now();
+    updateGomokuTimer();
+    renderGomokuBoard(msg.board);
+    var myTurn = msg.turn === gs.pid;
+    document.getElementById('gomoku-turn-info').textContent = (myTurn ? '你的回合' : '等待对方');
+    document.getElementById('gomoku-undo-btn').disabled = !myTurn;
+    document.getElementById('gomoku-undo-btn').textContent = '↩ 悔棋';
+  }
+
+  if (type === 'gomoku_win') {
+    clearInterval(gs._gomokuTimerInt);
+    renderGomokuBoard(msg.board, msg.win_line);
+    document.getElementById('gomoku-turn-info').textContent = '🏆 ' + msg.winner_name + ' 赢了！';
+    document.getElementById('gomoku-undo-btn').disabled = true;
+    showVictory('🏆', msg.winner_name + ' 获胜！', '五子连珠 · 共' + (msg.move_count || '?') + '手');
+  }
+
+  if (type === 'gomoku_draw') {
+    clearInterval(gs._gomokuTimerInt);
+    renderGomokuBoard(msg.board);
+    document.getElementById('gomoku-turn-info').textContent = '平局！';
+    document.getElementById('gomoku-undo-btn').disabled = true;
+    showVictory('🤝', '平局！', '棋盘已满');
+  }
+
+  if (type === 'gomoku_timeout') {
+    clearInterval(gs._gomokuTimerInt);
+    renderGomokuBoard(msg.board);
+    document.getElementById('gomoku-turn-info').textContent = '⏰ 超时！';
+    document.getElementById('gomoku-undo-btn').disabled = true;
+    showVictory('⏰', msg.winner_name + ' 获胜！', msg.loser_name + ' 超时判负');
+  }
+
+  if (type === 'gomoku_undo_request') {
+    if (msg.to_pid === gs.pid) {
+      document.getElementById('gomoku-undo-btn').textContent = '对方请求悔棋...';
+      document.getElementById('gomoku-undo-btn').disabled = false;
+    }
+  }
+
+  if (type === 'gomoku_undo_done') {
+    gs.gomokuTimerStart = Date.now();
+    updateGomokuTimer();
+    renderGomokuBoard(msg.board);
+    document.getElementById('gomoku-turn-info').textContent = (msg.turn === gs.pid ? '你的回合' : '等待对方');
+    document.getElementById('gomoku-undo-btn').disabled = (msg.turn !== gs.pid);
+    document.getElementById('gomoku-undo-btn').textContent = '↩ 悔棋';
+    showToast('已悔棋');
+  }
+
+  if (type === 'gomoku_undo_rejected') {
+    document.getElementById('gomoku-undo-btn').textContent = '↩ 悔棋(被拒)';
+    setTimeout(function() { document.getElementById('gomoku-undo-btn').textContent = '↩ 悔棋'; }, 2000);
+    showToast(msg.from_name + ' 拒绝了悔棋', 'error');
+  }
+
+  if (type === 'rps_chosen') {
+    if (msg.pid === gs.pid) {
+      document.getElementById('rps-my-choice').textContent = '✅ 已选择';
+    } else {
+      document.getElementById('rps-result-text').textContent = '对方已选择...';
+    }
+  }
+
+  if (type === 'rps_result') {
+    var emoji = {rock: '✊', paper: '🖐️', scissors: '✌️'};
+    if (msg.p1.pid === gs.pid) {
+      document.getElementById('rps-my-choice').textContent = emoji[msg.p1.choice] || '?';
+    } else if (msg.p2.pid === gs.pid) {
+      document.getElementById('rps-my-choice').textContent = emoji[msg.p2.choice] || '?';
+    }
+    document.getElementById('rps-p1-score').textContent = (msg.scores && msg.scores[msg.p1.pid]) || 0;
+    document.getElementById('rps-p2-score').textContent = (msg.scores && msg.scores[msg.p2.pid]) || 0;
+    document.getElementById('rps-round-label').textContent = '三拳两胜 · 第' + (msg.round + 1) + '局';
+    if (msg.p1.pid === gs.pid) {
+      document.getElementById('rps-p1-name').textContent = '你';
+      document.getElementById('rps-p2-name').textContent = msg.p2.name;
+    } else {
+      document.getElementById('rps-p1-name').textContent = msg.p1.name;
+      document.getElementById('rps-p2-name').textContent = '你';
+    }
+    var resultText;
+    if (msg.winner === 'draw') resultText = '🤝 平局！';
+    else if (msg.winner === msg.p1.pid) resultText = msg.p1.name + ' 胜！';
+    else resultText = msg.p2.name + ' 胜！';
+    document.getElementById('rps-result-text').textContent = resultText;
+  }
+
+  if (type === 'rps_match_over') {
+    var iAmWinner = msg.winner_pid === gs.pid;
+    showVictory(iAmWinner ? '🏆' : '😢', msg.winner_name + ' 赢得比赛！', '三拳两胜 · 最终比分 ' + (msg.scores[msg.winner_pid] || 0) + ':' + (Object.values(msg.scores).reduce(function(a,b){return a+b;}, 0) - (msg.scores[msg.winner_pid] || 0)));
+  }
+
+  if (type === 'back_to_lobby') {
+    gs.game = null;
+    gs.roomCode = null;
+    gs.selectedGame = null;
+    hideAllGamePanels();
+    document.getElementById('game-lobby').style.display = 'none';
+    document.getElementById('game-select-screen').style.display = 'block';
+    document.getElementById('game-room-screen').style.display = 'none';
+    document.getElementById('game-entry').style.display = 'block';
+  }
+
+  if (type === 'error') {
+    showToast(msg.message, 'error');
+  }
+}
+
+function renderLobbyPlayers(players) {
+  var container = document.getElementById('lobby-players');
+  container.innerHTML = players.map(function(p) {
+    return '<div class="player-chip">' +
+    '<span class="chip-emoji">' + (p.pid === gs.pid ? '⭐' : '🙂') + '</span>' +
+    '<span class="chip-name">' + p.name + '</span>' +
+    (p.pid === gs.pid ? '<span class="chip-you">我</span>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function selectGame(gameType) {
+  var names = {dice:'摇骰子', wheel:'命运转盘', rps:'猜拳对决', gomoku:'五子棋', guandan:'掼蛋'};
+  var emojis = {dice:'🎲', wheel:'🎡', rps:'✊', gomoku:'⚫', guandan:'🃏'};
+  gs.selectedGame = gameType;
+  document.getElementById('game-select-screen').style.display = 'none';
+  document.getElementById('game-room-screen').style.display = 'block';
+  document.getElementById('selected-game-emoji').textContent = emojis[gameType];
+  document.getElementById('selected-game-name').textContent = names[gameType];
+
+  if (gameType === 'guandan') {
+    document.getElementById('mode-select').style.display = 'none';
+    document.getElementById('gd-mode-select').style.display = 'block';
+    document.getElementById('multiplayer-room').style.display = 'none';
+    document.getElementById('mode-btn-ai').onclick = null;
+    document.getElementById('mode-btn-multi').onclick = null;
+    return;
+  }
+
+  document.getElementById('mode-select').style.display = 'block';
+  document.getElementById('gd-mode-select').style.display = 'none';
+  document.getElementById('multiplayer-room').style.display = 'none';
+  document.getElementById('mode-btn-ai').onclick = function() { startAIGame(); };
+  document.getElementById('mode-btn-multi').onclick = function() { showMultiplayerRoom(); };
+}
+
+function showMultiplayerRoom() {
+  document.getElementById('mode-select').style.display = 'none';
+  document.getElementById('gd-mode-select').style.display = 'none';
+  document.getElementById('multiplayer-room').style.display = 'block';
+}
+
+function startAIGame() {
+  var game = gs.selectedGame;
+  document.getElementById('game-entry').style.display = 'none';
+  document.getElementById('game-room-screen').style.display = 'none';
+  document.getElementById('game-lobby').style.display = 'none';
+
+  if (game === 'dice') startAIDice();
+  else if (game === 'wheel') startAIWheel();
+  else if (game === 'rps') startAIRPS();
+  else if (game === 'gomoku') startAIGomoku();
+}
+
+function backToGameSelect() {
+  document.getElementById('game-select-screen').style.display = 'block';
+  document.getElementById('game-room-screen').style.display = 'none';
+}
+
+function showGuandanRoom() {
+  gs.selectedGame = 'guandan';
+  document.getElementById('mode-select').style.display = 'none';
+  document.getElementById('gd-mode-select').style.display = 'none';
+  document.getElementById('multiplayer-room').style.display = 'block';
+  document.getElementById('selected-game-emoji').textContent = '🃏';
+  document.getElementById('selected-game-name').textContent = '掼蛋';
+}
+
+function createGameRoom() {
+  if (gs.selectedGame === 'guandan') {
+    var nickname = getGameNickname();
+    gs.pid = 'p' + Math.random().toString(36).slice(2,8);
+    gs.roomCode = String(Math.floor(1000 + Math.random() * 9000));
+    gs.game = 'guandan';
+
+    document.getElementById('game-room-screen').style.display = 'none';
+    document.getElementById('game-lobby').style.display = 'block';
+    document.getElementById('lobby-code').textContent = gs.roomCode;
+
+    renderLobbyPlayers([{pid: gs.pid, name: nickname}]);
+    document.getElementById('lobby-game-hint').textContent = '朋友们输入房间码即可加入（本地模拟）';
+    document.getElementById('lobby-start-btn').textContent = '🃏 开始掼蛋';
+    return;
+  }
+  sendGame({ action: 'create_room', pid: gs.pid, name: getGameNickname(), game: gs.selectedGame });
+}
+
+function joinGameRoom() {
+  var code = (document.getElementById('input-room-code').value || '').trim();
+  if (!code) { showToast('请输入房间码', 'error'); return; }
+  sendGame({ action: 'join_room', pid: gs.pid, name: getGameNickname(), room_code: code, game: gs.selectedGame });
+}
+
+function leaveGameRoom() {
+  if (gs.game === 'guandan') {
+    gs.roomCode = null;
+    gs.game = null;
+    hideAllGamePanels();
+    document.getElementById('game-guandan').style.display = 'none';
+    document.getElementById('game-lobby').style.display = 'none';
+    document.getElementById('game-entry').style.display = 'block';
+    document.getElementById('game-select-screen').style.display = 'block';
+    document.getElementById('game-room-screen').style.display = 'none';
+    gs.selectedGame = null;
+    return;
+  }
+  sendGame({ action: 'leave_room', pid: gs.pid, room_code: gs.roomCode });
+  gs.roomCode = null;
+  gs.game = null;
+  hideAllGamePanels();
+  document.getElementById('game-lobby').style.display = 'none';
+  document.getElementById('game-entry').style.display = 'block';
+  document.getElementById('game-select-screen').style.display = 'block';
+  document.getElementById('game-room-screen').style.display = 'none';
+  gs.selectedGame = null;
+}
+
+function copyRoomCode() {
+  var code = document.getElementById('lobby-code').textContent;
+  navigator.clipboard.writeText(code).then(function() { showToast('房间码已复制！'); });
+}
+
+function startSelectedGame() {
+  if (!gs.selectedGame) { showToast('请先选择游戏', 'error'); return; }
+  if (gs.selectedGame === 'guandan') {
+    startGuandanGame('multi');
+    return;
+  }
+  startGame(gs.selectedGame);
+}
+
+function startGame(gameType) {
+  sendGame({ action: 'start_game', pid: gs.pid, room_code: gs.roomCode, game: gameType });
+}
+
+function backToLobby() {
+  if (isAIActive()) {
+    resetAllAI();
+    hideAllGamePanels();
+    document.getElementById('game-entry').style.display = 'block';
+    document.getElementById('game-select-screen').style.display = 'block';
+    document.getElementById('game-room-screen').style.display = 'none';
+    return;
+  }
+  if (gd.phase === 'playing' || gd.phase === 'gameOver') {
+    gd.phase = 'idle';
+    if (gd.aiTimer) { clearTimeout(gd.aiTimer); gd.aiTimer = null; }
+    document.getElementById('game-guandan').style.display = 'none';
+    document.getElementById('game-entry').style.display = 'block';
+    document.getElementById('game-select-screen').style.display = 'block';
+    document.getElementById('game-room-screen').style.display = 'none';
+    return;
+  }
+  sendGame({ action: 'back_to_lobby', pid: gs.pid, room_code: gs.roomCode });
+}
+
+function hideAllGamePanels() {
+  ['game-dice','game-wheel','game-gomoku','game-rps','game-guandan'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function showGamePanel(id) {
+  document.getElementById(id).style.display = 'block';
+}
+
+// === 骰子 ===
+var gs = gs || {};
+gs._diceRound = 0;
+
+function rollDice() {
+  gs._diceRound = (gs._diceRound || 0) + 1;
+  document.getElementById('dice-roll-btn').disabled = true;
+  document.getElementById('dice-display').classList.add('rolling');
+  document.getElementById('dice-punishment').innerHTML = '';
+  document.getElementById('dice-results').innerHTML = '';
+  sendGame({ action: 'roll_dice', pid: gs.pid, room_code: gs.roomCode });
+}
+
+// === 转盘 ===
+function spinWheel() {
+  var btn = document.getElementById('wheel-spin-btn');
+  btn.disabled = true;
+  document.getElementById('wheel-visual').classList.add('spinning');
+  document.getElementById('wheel-result').textContent = '';
+  document.getElementById('wheel-target').textContent = '';
+  document.getElementById('wheel-punishment').innerHTML = '';
+  sendGame({ action: 'spin_wheel', pid: gs.pid, room_code: gs.roomCode });
+}
+
+// === 五子棋 ===
+function renderGomokuBoard(board, winLine) {
+  var container = document.getElementById('gomoku-board');
+  var html = '';
+  var wset = {};
+  if (winLine) winLine.forEach(function(p) { wset[p[0] + ',' + p[1]] = true; });
+  for (var r = 0; r < 15; r++) {
+    for (var c = 0; c < 15; c++) {
+      var cell = board[r][c] || '';
+      var isWin = wset[r + ',' + c];
+      var cellHtml = '';
+      if (cell === '⚫' || cell === 1) {
+        cellHtml = '<span class="gomoku-stone black"></span>';
+      } else if (cell === '⚪' || cell === 2) {
+        cellHtml = '<span class="gomoku-stone white"></span>';
+      }
+      var cls = 'gomoku-cell' + (cell ? ' occupied' : '') + (isWin ? ' winline' : '');
+      html += '<div class="' + cls + '" onclick="gomokuMove(' + r + ',' + c + ')">' + cellHtml + '</div>';
+    }
+  }
+  container.innerHTML = html;
+}
+
+function gomokuMove(row, col) {
+  sendGame({ action: 'gomoku_move', pid: gs.pid, room_code: gs.roomCode, row: row, col: col });
+}
+
+// === 猜拳 ===
+function rpsChoose(choice) {
+  var emoji = { rock: '✊', paper: '🖐️', scissors: '✌️' };
+  document.getElementById('rps-my-choice').textContent = emoji[choice];
+  sendGame({ action: 'rps_choose', pid: gs.pid, room_code: gs.roomCode, choice: choice });
+}
+
+// 监听页面关闭
+window.addEventListener('beforeunload', function() {
+  if (gs.roomCode) {
+    sendGame({ action: 'leave_room', pid: gs.pid, room_code: gs.roomCode });
+  }
+});
+
+// ============== 单人小游戏 ==============
+var _soloGameMode = 'multi';
+
+function switchGameMode(mode, btn) {
+  _soloGameMode = mode;
+  document.querySelectorAll('.solo-game-tab').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  if (mode === 'multi') {
+    document.getElementById('game-select-screen').style.display = 'block';
+    document.getElementById('solo-game-select').style.display = 'none';
+    document.getElementById('game-room-screen').style.display = 'none';
+    hideAllSoloGames();
+  } else {
+    document.getElementById('game-select-screen').style.display = 'none';
+    document.getElementById('game-room-screen').style.display = 'none';
+    document.getElementById('solo-game-select').style.display = 'block';
+    document.getElementById('game-lobby').style.display = 'none';
+    hideAllGamePanels();
+  }
+}
+
+function hideAllSoloGames() {
+  ['solo-snake','solo-tetris','solo-2048'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function startSoloGame(game) {
+  document.getElementById('solo-game-select').style.display = 'none';
+  hideAllSoloGames();
+  var el = document.getElementById('solo-' + game);
+  if (el) el.style.display = 'block';
+  if (game === 'snake') snakeInit();
+  if (game === 'tetris') tetrisInit();
+  if (game === '2048') g2048Init();
+}
+
+function backToSoloSelect() {
+  if (window._snakeInterval) { clearInterval(window._snakeInterval); window._snakeInterval = null; }
+  if (window._tetrisInterval) { clearInterval(window._tetrisInterval); window._tetrisInterval = null; }
+  hideAllSoloGames();
+  document.getElementById('solo-game-select').style.display = 'block';
+}
+
+// ===================== 贪吃蛇 =====================
+var SNAKE_SIZE = 15;
+var snake = [];
+var snakeFood = {};
+var snakeDir = 'right';
+var snakeNextDir = 'right';
+var snakeRunning = false;
+var snakePaused = false;
+var snakeScore = 0;
+
+function snakeInit() {
+  var canvas = document.getElementById('snake-canvas');
+  var ctx = canvas.getContext('2d');
+  snakeReset();
+  snakeDraw(ctx);
+  document.getElementById('snake-start-btn').style.display = 'inline-block';
+  document.getElementById('snake-pause-btn').style.display = 'none';
+  document.getElementById('snake-gameover').style.display = 'none';
+  document.getElementById('snake-hint').textContent = '点击「开始游戏」开始';
+}
+
+function snakeReset() {
+  var mid = Math.floor(SNAKE_SIZE / 2);
+  snake = [{x: mid, y: mid}, {x: mid-1, y: mid}, {x: mid-2, y: mid}];
+  snakeDir = 'right';
+  snakeNextDir = 'right';
+  snakeScore = 0;
+  document.getElementById('snake-score').textContent = '0';
+  snakeSpawnFood();
+}
+
+function snakeSpawnFood() {
+  var occupied = {};
+  snake.forEach(function(s) { occupied[s.x + ',' + s.y] = true; });
+  var candidates = [];
+  for (var i = 0; i < SNAKE_SIZE; i++) {
+    for (var j = 0; j < SNAKE_SIZE; j++) {
+      if (!occupied[i + ',' + j]) candidates.push({x: i, y: j});
+    }
+  }
+  if (candidates.length > 0) {
+    snakeFood = candidates[Math.floor(Math.random() * candidates.length)];
+  }
+}
+
+function snakeDraw(ctx) {
+  var size = 300 / SNAKE_SIZE;
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, 300, 300);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for (var i = 0; i <= SNAKE_SIZE; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * size, 0);
+    ctx.lineTo(i * size, 300);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, i * size);
+    ctx.lineTo(300, i * size);
+    ctx.stroke();
+  }
+
+  for (var i = 0; i < snake.length; i++) {
+    var s = snake[i];
+    var gradient = ctx.createRadialGradient(s.x * size + size/2, s.y * size + size/2, 1, s.x * size + size/2, s.y * size + size/2, size * 0.7);
+    if (i === 0) {
+      gradient.addColorStop(0, '#4ecca3');
+      gradient.addColorStop(1, '#2d9b7a');
+    } else {
+      gradient.addColorStop(0, '#3cb88a');
+      gradient.addColorStop(1, '#2d7a60');
+    }
+    ctx.fillStyle = gradient;
+    ctx.shadowColor = i === 0 ? '#4ecca3' : 'transparent';
+    ctx.shadowBlur = i === 0 ? 8 : 0;
+    ctx.beginPath();
+    ctx.roundRect(s.x * size + 1, s.y * size + 1, size - 2, size - 2, 3);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.fillStyle = '#ff6b6b';
+  ctx.shadowColor = '#ff6b6b';
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(snakeFood.x * size + size/2, snakeFood.y * size + size/2, size/2 - 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function snakeTick() {
+  if (!snakeRunning || snakePaused) return;
+  snakeDir = snakeNextDir;
+
+  var head = {x: snake[0].x, y: snake[0].y};
+  if (snakeDir === 'right') head.x++;
+  else if (snakeDir === 'left') head.x--;
+  else if (snakeDir === 'up') head.y--;
+  else if (snakeDir === 'down') head.y++;
+
+  if (head.x < 0 || head.x >= SNAKE_SIZE || head.y < 0 || head.y >= SNAKE_SIZE) {
+    snakeGameOver();
+    return;
+  }
+
+  for (var i = 0; i < snake.length; i++) {
+    if (snake[i].x === head.x && snake[i].y === head.y) {
+      snakeGameOver();
+      return;
+    }
+  }
+
+  snake.unshift(head);
+
+  if (head.x === snakeFood.x && head.y === snakeFood.y) {
+    snakeScore += 10;
+    document.getElementById('snake-score').textContent = snakeScore;
+    snakeSpawnFood();
+  } else {
+    snake.pop();
+  }
+
+  var canvas = document.getElementById('snake-canvas');
+  var ctx = canvas.getContext('2d');
+  snakeDraw(ctx);
+}
+
+function snakeGameOver() {
+  snakeRunning = false;
+  if (window._snakeInterval) { clearInterval(window._snakeInterval); window._snakeInterval = null; }
+  document.getElementById('snake-final-score').textContent = '得分: ' + snakeScore;
+  document.getElementById('snake-gameover').style.display = 'flex';
+  document.getElementById('snake-start-btn').style.display = 'inline-block';
+  document.getElementById('snake-start-btn').textContent = '再来一局';
+  document.getElementById('snake-pause-btn').style.display = 'none';
+}
+
+function snakeStart() {
+  snakeReset();
+  snakeRunning = true;
+  snakePaused = false;
+  document.getElementById('snake-gameover').style.display = 'none';
+  document.getElementById('snake-start-btn').style.display = 'none';
+  document.getElementById('snake-pause-btn').style.display = 'inline-block';
+  document.getElementById('snake-pause-btn').textContent = '暂停';
+  document.getElementById('snake-hint').textContent = '方向键 / 滑动控制方向';
+
+  if (window._snakeInterval) clearInterval(window._snakeInterval);
+  window._snakeInterval = setInterval(snakeTick, 150);
+}
+
+function snakeTogglePause() {
+  snakePaused = !snakePaused;
+  document.getElementById('snake-pause-btn').textContent = snakePaused ? '继续' : '暂停';
+  document.getElementById('snake-hint').textContent = snakePaused ? '已暂停' : '方向键 / 滑动控制方向';
+}
+
+// ===================== 俄罗斯方块 =====================
+var TETRIS_COLS = 10;
+var TETRIS_ROWS = 20;
+var TETRIS_SIZE = 20;
+var tetrisBoard = [];
+var tetrisPiece = null;
+var tetrisNextPiece = null;
+var tetrisScore = 0;
+var tetrisRunning = false;
+var tetrisPaused = false;
+var tetrisLines = 0;
+
+var TETRIS_SHAPES = [
+  { matrix: [[1,1,1,1]], color: '#45b7d1' },
+  { matrix: [[1,1],[1,1]], color: '#f7dc6f' },
+  { matrix: [[0,1,0],[1,1,1]], color: '#9b59b6' },
+  { matrix: [[0,1,1],[1,1,0]], color: '#2ecc71' },
+  { matrix: [[1,1,0],[0,1,1]], color: '#e74c3c' },
+  { matrix: [[1,0,0],[1,1,1]], color: '#e67e22' },
+  { matrix: [[0,0,1],[1,1,1]], color: '#3498db' }
+];
+
+function tetrisInit() {
+  tetrisBoard = [];
+  for (var r = 0; r < TETRIS_ROWS; r++) {
+    tetrisBoard[r] = [];
+    for (var c = 0; c < TETRIS_COLS; c++) {
+      tetrisBoard[r][c] = 0;
+    }
+  }
+  tetrisScore = 0;
+  tetrisLines = 0;
+  document.getElementById('tetris-score').textContent = '0';
+  document.getElementById('tetris-start-btn').style.display = 'inline-block';
+  document.getElementById('tetris-pause-btn').style.display = 'none';
+  document.getElementById('tetris-gameover').style.display = 'none';
+
+  tetrisNextPiece = tetrisRandomPiece();
+  tetrisDraw();
+  tetrisDrawNext();
+}
+
+function tetrisRandomPiece() {
+  var idx = Math.floor(Math.random() * TETRIS_SHAPES.length);
+  var shape = TETRIS_SHAPES[idx];
+  return {
+    matrix: shape.matrix.map(function(row) { return row.slice(); }),
+    color: shape.color,
+    x: Math.floor((TETRIS_COLS - shape.matrix[0].length) / 2),
+    y: 0
+  };
+}
+
+function tetrisStart() {
+  tetrisInit();
+  tetrisPiece = tetrisNextPiece;
+  tetrisNextPiece = tetrisRandomPiece();
+  tetrisRunning = true;
+  tetrisPaused = false;
+  document.getElementById('tetris-start-btn').style.display = 'none';
+  document.getElementById('tetris-pause-btn').style.display = 'inline-block';
+  document.getElementById('tetris-pause-btn').textContent = '暂停';
+  document.getElementById('tetris-gameover').style.display = 'none';
+  tetrisDraw();
+  tetrisDrawNext();
+
+  if (window._tetrisInterval) clearInterval(window._tetrisInterval);
+  window._tetrisInterval = setInterval(tetrisTick, 400);
+}
+
+function tetrisTick() {
+  if (!tetrisRunning || tetrisPaused) return;
+  if (!tetrisMove(0, 1)) {
+    tetrisLock();
+  }
+}
+
+function tetrisMove(dx, dy) {
+  if (!tetrisPiece) return false;
+  for (var r = 0; r < tetrisPiece.matrix.length; r++) {
+    for (var c = 0; c < tetrisPiece.matrix[r].length; c++) {
+      if (tetrisPiece.matrix[r][c]) {
+        var nx = tetrisPiece.x + c + dx;
+        var ny = tetrisPiece.y + r + dy;
+        if (nx < 0 || nx >= TETRIS_COLS || ny >= TETRIS_ROWS) return false;
+        if (ny >= 0 && tetrisBoard[ny][nx]) return false;
+      }
+    }
+  }
+  tetrisPiece.x += dx;
+  tetrisPiece.y += dy;
+  tetrisDraw();
+  return true;
+}
+
+function tetrisRotate() {
+  if (!tetrisPiece) return;
+  var matrix = tetrisPiece.matrix;
+  var rotated = matrix[0].map(function(_, i) { return matrix.map(function(row) { return row[i]; }).reverse(); });
+  for (var r = 0; r < rotated.length; r++) {
+    for (var c = 0; c < rotated[r].length; c++) {
+      if (rotated[r][c]) {
+        var nx = tetrisPiece.x + c;
+        var ny = tetrisPiece.y + r;
+        if (nx < 0 || nx >= TETRIS_COLS || ny >= TETRIS_ROWS) return;
+        if (ny >= 0 && tetrisBoard[ny][nx]) return;
+      }
+    }
+  }
+  tetrisPiece.matrix = rotated;
+  tetrisDraw();
+}
+
+function tetrisLock() {
+  if (!tetrisPiece) return;
+  for (var r = 0; r < tetrisPiece.matrix.length; r++) {
+    for (var c = 0; c < tetrisPiece.matrix[r].length; c++) {
+      if (tetrisPiece.matrix[r][c]) {
+        var ny = tetrisPiece.y + r;
+        var nx = tetrisPiece.x + c;
+        if (ny < 0) { tetrisGameOver(); return; }
+        tetrisBoard[ny][nx] = tetrisPiece.color;
+      }
+    }
+  }
+
+  var cleared = 0;
+  for (var r = TETRIS_ROWS - 1; r >= 0; r--) {
+    var full = true;
+    for (var c = 0; c < TETRIS_COLS; c++) {
+      if (!tetrisBoard[r][c]) { full = false; break; }
+    }
+    if (full) {
+      tetrisBoard.splice(r, 1);
+      tetrisBoard.unshift(new Array(TETRIS_COLS).fill(0));
+      cleared++;
+      r++;
+    }
+  }
+
+  if (cleared > 0) {
+    var points = [0, 100, 300, 500, 800];
+    tetrisScore += points[Math.min(cleared, 4)];
+    tetrisLines += cleared;
+    document.getElementById('tetris-score').textContent = tetrisScore;
+  }
+
+  tetrisPiece = tetrisNextPiece;
+  tetrisNextPiece = tetrisRandomPiece();
+  tetrisPiece.x = Math.floor((TETRIS_COLS - tetrisPiece.matrix[0].length) / 2);
+  tetrisPiece.y = 0;
+
+  for (var c = 0; c < tetrisPiece.matrix[0].length; c++) {
+    if (tetrisPiece.matrix[0][c] && tetrisBoard[0][c]) {
+      tetrisGameOver();
+      return;
+    }
+  }
+
+  tetrisDraw();
+  tetrisDrawNext();
+}
+
+function tetrisGameOver() {
+  tetrisRunning = false;
+  if (window._tetrisInterval) { clearInterval(window._tetrisInterval); window._tetrisInterval = null; }
+  document.getElementById('tetris-final-score').textContent = '得分: ' + tetrisScore;
+  document.getElementById('tetris-gameover').style.display = 'flex';
+  document.getElementById('tetris-start-btn').style.display = 'inline-block';
+  document.getElementById('tetris-start-btn').textContent = '再来一局';
+  document.getElementById('tetris-pause-btn').style.display = 'none';
+}
+
+function tetrisTogglePause() {
+  tetrisPaused = !tetrisPaused;
+  document.getElementById('tetris-pause-btn').textContent = tetrisPaused ? '继续' : '暂停';
+}
+
+function tetrisDraw() {
+  var canvas = document.getElementById('tetris-canvas');
+  var ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, TETRIS_COLS * TETRIS_SIZE, TETRIS_ROWS * TETRIS_SIZE);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for (var r = 0; r <= TETRIS_ROWS; r++) {
+    ctx.beginPath(); ctx.moveTo(0, r * TETRIS_SIZE); ctx.lineTo(TETRIS_COLS * TETRIS_SIZE, r * TETRIS_SIZE); ctx.stroke();
+  }
+  for (var c = 0; c <= TETRIS_COLS; c++) {
+    ctx.beginPath(); ctx.moveTo(c * TETRIS_SIZE, 0); ctx.lineTo(c * TETRIS_SIZE, TETRIS_ROWS * TETRIS_SIZE); ctx.stroke();
+  }
+
+  for (var r = 0; r < TETRIS_ROWS; r++) {
+    for (var c = 0; c < TETRIS_COLS; c++) {
+      if (tetrisBoard[r][c]) {
+        ctx.fillStyle = tetrisBoard[r][c];
+        ctx.shadowColor = tetrisBoard[r][c];
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        ctx.roundRect(c * TETRIS_SIZE + 1, r * TETRIS_SIZE + 1, TETRIS_SIZE - 2, TETRIS_SIZE - 2, 3);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+  }
+
+  if (tetrisPiece) {
+    for (var r = 0; r < tetrisPiece.matrix.length; r++) {
+      for (var c = 0; c < tetrisPiece.matrix[r].length; c++) {
+        if (tetrisPiece.matrix[r][c]) {
+          var px = (tetrisPiece.x + c) * TETRIS_SIZE;
+          var py = (tetrisPiece.y + r) * TETRIS_SIZE;
+          ctx.fillStyle = tetrisPiece.color;
+          ctx.shadowColor = tetrisPiece.color;
+          ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.roundRect(px + 1, py + 1, TETRIS_SIZE - 2, TETRIS_SIZE - 2, 3);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+    }
+  }
+}
+
+function tetrisDrawNext() {
+  var canvas = document.getElementById('tetris-next');
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, 80, 80);
+
+  if (tetrisNextPiece) {
+    var m = tetrisNextPiece.matrix;
+    var cellSize = 16;
+    var offsetX = (80 - m[0].length * cellSize) / 2;
+    var offsetY = (80 - m.length * cellSize) / 2;
+    for (var r = 0; r < m.length; r++) {
+      for (var c = 0; c < m[r].length; c++) {
+        if (m[r][c]) {
+          ctx.fillStyle = tetrisNextPiece.color;
+          ctx.shadowColor = tetrisNextPiece.color;
+          ctx.shadowBlur = 4;
+          ctx.beginPath();
+          ctx.roundRect(offsetX + c * cellSize + 1, offsetY + r * cellSize + 1, cellSize - 2, cellSize - 2, 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+    }
+  }
+}
+
+// ===================== 2048 =====================
+var g2048Board = [];
+var g2048Score = 0;
+
+function g2048Init() {
+  g2048Board = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+  g2048Score = 0;
+  document.getElementById('g2048-score').textContent = '0';
+  document.getElementById('g2048-gameover').style.display = 'none';
+  g2048AddRandom();
+  g2048AddRandom();
+  g2048Render();
+}
+
+function g2048Start() {
+  g2048Init();
+}
+
+function g2048AddRandom() {
+  var empty = [];
+  for (var r = 0; r < 4; r++) {
+    for (var c = 0; c < 4; c++) {
+      if (g2048Board[r][c] === 0) empty.push({r: r, c: c});
+    }
+  }
+  if (empty.length > 0) {
+    var cell = empty[Math.floor(Math.random() * empty.length)];
+    g2048Board[cell.r][cell.c] = Math.random() < 0.9 ? 2 : 4;
+  }
+}
+
+function g2048Render() {
+  var grid = document.getElementById('g2048-grid');
+  grid.innerHTML = '';
+  for (var r = 0; r < 4; r++) {
+    for (var c = 0; c < 4; c++) {
+      var val = g2048Board[r][c];
+      var cell = document.createElement('div');
+      cell.className = 'cell-2048' + (val ? ' t' + val : '');
+      cell.textContent = val || '';
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function g2048Move(direction) {
+  if (document.getElementById('g2048-gameover').style.display === 'flex') return;
+
+  var moved = false;
+
+  if (direction === 'left') moved = g2048SlideLeft();
+  else if (direction === 'right') moved = g2048SlideRight();
+  else if (direction === 'up') moved = g2048SlideUp();
+  else if (direction === 'down') moved = g2048SlideDown();
+
+  if (moved) {
+    g2048AddRandom();
+    g2048Render();
+    document.getElementById('g2048-score').textContent = g2048Score;
+
+    if (g2048IsGameOver()) {
+      document.getElementById('g2048-go-title').textContent = '游戏结束';
+      document.getElementById('g2048-final-score').textContent = '得分: ' + g2048Score;
+      document.getElementById('g2048-gameover').style.display = 'flex';
+    }
+
+    for (var r = 0; r < 4; r++) {
+      for (var c = 0; c < 4; c++) {
+        if (g2048Board[r][c] === 2048) {
+          document.getElementById('g2048-go-title').textContent = '🎉 你赢了！';
+          document.getElementById('g2048-final-score').textContent = '得分: ' + g2048Score;
+          document.getElementById('g2048-gameover').style.display = 'flex';
+          return;
+        }
+      }
+    }
+  }
+}
+
+function g2048SlideLeft() {
+  var moved = false;
+  for (var r = 0; r < 4; r++) {
+    var row = g2048Board[r].filter(function(v) { return v !== 0; });
+    for (var i = 0; i < row.length - 1; i++) {
+      if (row[i] === row[i+1]) {
+        row[i] *= 2;
+        g2048Score += row[i];
+        row.splice(i+1, 1);
+        moved = true;
+      }
+    }
+    while (row.length < 4) row.push(0);
+    for (var c = 0; c < 4; c++) {
+      if (g2048Board[r][c] !== row[c]) moved = true;
+      g2048Board[r][c] = row[c];
+    }
+  }
+  return moved;
+}
+
+function g2048SlideRight() {
+  var moved = false;
+  for (var r = 0; r < 4; r++) {
+    var row = g2048Board[r].filter(function(v) { return v !== 0; });
+    for (var i = row.length - 1; i > 0; i--) {
+      if (row[i] === row[i-1]) {
+        row[i] *= 2;
+        g2048Score += row[i];
+        row.splice(i-1, 1);
+        i--;
+        moved = true;
+      }
+    }
+    while (row.length < 4) row.unshift(0);
+    for (var c = 0; c < 4; c++) {
+      if (g2048Board[r][c] !== row[c]) moved = true;
+      g2048Board[r][c] = row[c];
+    }
+  }
+  return moved;
+}
+
+function g2048SlideUp() {
+  var moved = false;
+  for (var c = 0; c < 4; c++) {
+    var col = [];
+    for (var r = 0; r < 4; r++) col.push(g2048Board[r][c]);
+    col = col.filter(function(v) { return v !== 0; });
+    for (var i = 0; i < col.length - 1; i++) {
+      if (col[i] === col[i+1]) {
+        col[i] *= 2;
+        g2048Score += col[i];
+        col.splice(i+1, 1);
+        moved = true;
+      }
+    }
+    while (col.length < 4) col.push(0);
+    for (var r = 0; r < 4; r++) {
+      if (g2048Board[r][c] !== col[r]) moved = true;
+      g2048Board[r][c] = col[r];
+    }
+  }
+  return moved;
+}
+
+function g2048SlideDown() {
+  var moved = false;
+  for (var c = 0; c < 4; c++) {
+    var col = [];
+    for (var r = 0; r < 4; r++) col.push(g2048Board[r][c]);
+    col = col.filter(function(v) { return v !== 0; });
+    for (var i = col.length - 1; i > 0; i--) {
+      if (col[i] === col[i-1]) {
+        col[i] *= 2;
+        g2048Score += col[i];
+        col.splice(i-1, 1);
+        i--;
+        moved = true;
+      }
+    }
+    while (col.length < 4) col.unshift(0);
+    for (var r = 0; r < 4; r++) {
+      if (g2048Board[r][c] !== col[r]) moved = true;
+      g2048Board[r][c] = col[r];
+    }
+  }
+  return moved;
+}
+
+function g2048IsGameOver() {
+  for (var r = 0; r < 4; r++) {
+    for (var c = 0; c < 4; c++) {
+      if (g2048Board[r][c] === 0) return false;
+      if (c < 3 && g2048Board[r][c] === g2048Board[r][c+1]) return false;
+      if (r < 3 && g2048Board[r][c] === g2048Board[r+1][c]) return false;
+    }
+  }
+  return true;
+}
+
+// ===================== 键盘控制 =====================
+document.addEventListener('keydown', function(e) {
+  if (snakeRunning && !snakePaused && document.getElementById('solo-snake').style.display === 'block') {
+    var keyMap = {ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right'};
+    var dir = keyMap[e.key];
+    if (dir) {
+      e.preventDefault();
+      var opposites = {up: 'down', down: 'up', left: 'right', right: 'left'};
+      if (dir !== opposites[snakeDir]) { snakeNextDir = dir; }
+    }
+  }
+
+  if (tetrisRunning && !tetrisPaused && document.getElementById('solo-tetris').style.display === 'block') {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); tetrisMove(-1, 0); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); tetrisMove(1, 0); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); tetrisMove(0, 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); tetrisRotate(); }
+    else if (e.key === ' ' || e.key === 'Space') { e.preventDefault(); while(tetrisMove(0,1)){} tetrisLock(); }
+  }
+
+  if (document.getElementById('solo-2048').style.display === 'block') {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); g2048Move('left'); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); g2048Move('right'); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); g2048Move('up'); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); g2048Move('down'); }
+  }
+});
+
+// ===================== 触摸控制 =====================
+(function() {
+  var startX, startY;
+  document.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, {passive: true});
+  document.addEventListener('touchend', function(e) {
+    if (!startX || !startY) return;
+    var dx = e.changedTouches[0].clientX - startX;
+    var dy = e.changedTouches[0].clientY - startY;
+    var absDx = Math.abs(dx), absDy = Math.abs(dy);
+    if (absDx < 20 && absDy < 20) return;
+
+    if (snakeRunning && !snakePaused && document.getElementById('solo-snake').style.display === 'block') {
+      var opposites = {up: 'down', down: 'up', left: 'right', right: 'left'};
+      var dir;
+      if (absDx > absDy) dir = dx > 0 ? 'right' : 'left';
+      else dir = dy > 0 ? 'down' : 'up';
+      if (dir !== opposites[snakeDir]) snakeNextDir = dir;
+    }
+
+    if (tetrisRunning && !tetrisPaused && document.getElementById('solo-tetris').style.display === 'block') {
+      if (absDx > absDy) { if (dx > 0) tetrisMove(1, 0); else tetrisMove(-1, 0); }
+      else { if (dy > 0) tetrisMove(0, 1); else tetrisRotate(); }
+    }
+
+    if (document.getElementById('solo-2048').style.display === 'block') {
+      if (absDx > absDy) g2048Move(dx > 0 ? 'right' : 'left');
+      else g2048Move(dy > 0 ? 'down' : 'up');
+    }
+
+    startX = startY = null;
+  }, {passive: true});
+})();
+
+// ============== V2 功能 ==============
+function setDiceMode(mode, btn) {
+  document.querySelectorAll('.dice-mode-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('dice-ai-mode').style.display = (mode === 'solo') ? 'block' : 'none';
+  sendGame({ action: 'dice_set_mode', pid: gs.pid, room_code: gs.roomCode, mode: mode });
+}
+
+function gomokuRequestUndo() {
+  var btn = document.getElementById('gomoku-undo-btn');
+  if (btn.textContent === '对方请求悔棋...') {
+    sendGame({ action: 'gomoku_undo_response', pid: gs.pid, room_code: gs.roomCode, accept: true });
+    btn.textContent = '↩ 悔棋';
+    btn.disabled = true;
+  } else if (btn.textContent === '↩ 悔棋') {
+    btn.textContent = '等待同意...';
+    btn.disabled = true;
+    sendGame({ action: 'gomoku_undo', pid: gs.pid, room_code: gs.roomCode });
+  }
+}
+
+function updateGomokuTimer() {
+  clearInterval(gs._gomokuTimerInt);
+  var bar = document.getElementById('gomoku-timer-fill');
+  if (!bar) return;
+  var limit = gs.gomokuTimer || 30;
+  gs._gomokuTimerInt = setInterval(function() {
+    var elapsed = (Date.now() - (gs.gomokuTimerStart || Date.now())) / 1000;
+    var pct = Math.max(0, 100 - (elapsed / limit) * 100);
+    bar.style.width = pct + '%';
+    if (pct < 25) bar.classList.add('urgent');
+    else bar.classList.remove('urgent');
+    if (pct <= 0) clearInterval(gs._gomokuTimerInt);
+  }, 200);
+}
+
+function showVictory(emoji, title, subtitle) {
+  var overlay = document.createElement('div');
+  overlay.className = 'victory-overlay';
+  overlay.innerHTML = '<div class="victory-modal">' +
+    '<div class="victory-emoji">' + emoji + '</div>' +
+    '<div class="victory-title">' + title + '</div>' +
+    '<div class="victory-subtitle">' + subtitle + '</div>' +
+    '<button class="victory-btn" onclick="this.closest(\'.victory-overlay\').remove(); backToLobby()">回到大厅</button>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) { overlay.remove(); backToLobby(); }
+  });
+}
+
+// ===================== AI游戏通用逻辑 =====================
+var aiDice = {}, aiWheel = {}, aiGomoku = {}, aiRPS = {};
+
+function isAIActive() {
+  return aiDice.active || aiWheel.active || aiGomoku.active || aiRPS.active;
+}
+
+function resetAllAI() {
+  aiDice.active = false; aiWheel.active = false;
+  aiGomoku.active = false; aiRPS.active = false;
+}
+
+// ===================== 骰子AI =====================
+function startAIDice() {
+  resetAllAI();
+  hideAllGamePanels();
+  document.getElementById('game-dice').style.display = 'block';
+  document.getElementById('dice-party-area').style.display = 'none';
+  document.getElementById('dice-mode-bar').style.display = 'none';
+  document.getElementById('dice-ai-mode').style.display = 'block';
+
+  aiDice = {
+    active: true,
+    players: [
+      { name: '你', emoji: '🧑', roll: 0 },
+      { name: 'AI-阿强', emoji: '🤖', roll: 0 },
+      { name: 'AI-小敏', emoji: '🤖', roll: 0 },
+      { name: 'AI-大力', emoji: '🤖', roll: 0 }
+    ],
+    round: 0
+  };
+
+  document.getElementById('dice-ai-p1-name').textContent = '🧑 你';
+  document.getElementById('dice-ai-p2-name').textContent = '🤖 AI-阿强';
+  document.getElementById('dice-ai-p3-name').textContent = '🤖 AI-小敏';
+  document.getElementById('dice-ai-p4-name').textContent = '🤖 AI-大力';
+  document.getElementById('dice-ai-display').textContent = '🎲';
+  document.getElementById('dice-ai-roll-btn').disabled = false;
+  document.getElementById('dice-ai-roll-btn').textContent = '🎲 AI对决！';
+  document.getElementById('dice-ai-results').innerHTML = '<div style="font-size:12px;color:var(--text2);margin:8px 0">点击按钮开始对决！</div>';
+  for (var i = 1; i <= 4; i++) {
+    document.getElementById('dice-ai-p' + i + '-roll').textContent = '-';
+    document.getElementById('dice-ai-p' + i + '-roll').style.color = 'var(--text2)';
+  }
+  document.getElementById('dice-ai-punishment').innerHTML = '🎯 准备对决...';
+}
+
+function rollDiceAI() {
+  var btn = document.getElementById('dice-ai-roll-btn');
+  btn.disabled = true;
+  btn.textContent = '🎲 掷骰中...';
+
+  aiDice.players.forEach(function(p) { p.roll = Math.floor(Math.random() * 6) + 1; });
+  aiDice.round++;
+
+  var diceEmojis = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
+  var display = document.getElementById('dice-ai-display');
+
+  var animCount = 0;
+  var anim = setInterval(function() {
+    display.textContent = diceEmojis[Math.floor(Math.random() * 6) + 1];
+    animCount++;
+    if (animCount > 8) {
+      clearInterval(anim);
+      display.textContent = diceEmojis[aiDice.players[0].roll];
+
+      var maxRoll = Math.max.apply(null, aiDice.players.map(function(p){return p.roll;}));
+      var winners = aiDice.players.filter(function(p){return p.roll === maxRoll;});
+      var isTie = winners.length > 1;
+      var youWon = winners.some(function(p){return p.name === '你';});
+
+      for (var i = 1; i <= 4; i++) {
+        var el = document.getElementById('dice-ai-p' + i + '-roll');
+        var p = aiDice.players[i-1];
+        el.textContent = diceEmojis[p.roll];
+        if (p.roll === maxRoll) {
+          el.style.color = 'var(--primary)';
+          el.style.fontWeight = '800';
+        } else {
+          el.style.color = 'var(--text2)';
+          el.style.fontWeight = '400';
+        }
+      }
+
+      var resultText;
+      if (isTie && youWon) resultText = '🤝 平局！你和对手打成平手';
+      else if (youWon) resultText = '🎉 你赢了！最高' + maxRoll + '点！';
+      else resultText = '😢 ' + winners[0].name + ' 赢了（' + maxRoll + '点），下次加油！';
+
+      document.getElementById('dice-ai-punishment').innerHTML = resultText;
+      document.getElementById('dice-ai-results').innerHTML = '<div style="font-size:12px;color:var(--text2);margin:4px 0">第' + aiDice.round + '轮 · ' + resultText + '</div>';
+
+      btn.disabled = false;
+      btn.textContent = '🎲 再来一局！';
+    }
+  }, 100);
+}
+
+// ===================== 命运转盘AI =====================
+function startAIWheel() {
+  resetAllAI();
+  hideAllGamePanels();
+  document.getElementById('game-wheel').style.display = 'block';
+  document.getElementById('wheel-punishment').style.display = 'none';
+  document.getElementById('wheel-ai-mode').style.display = 'block';
+  document.getElementById('wheel-visual').style.display = 'none';
+  document.getElementById('wheel-spin-btn').style.display = 'none';
+  document.getElementById('wheel-result').style.display = 'none';
+  document.getElementById('wheel-target').style.display = 'none';
+
+  aiWheel = {
+    active: true,
+    players: [
+      { name: '你', emoji: '🧑' },
+      { name: 'AI-阿强', emoji: '🤖' },
+      { name: 'AI-小敏', emoji: '🤖' },
+      { name: 'AI-大力', emoji: '🤖' }
+    ],
+    spinCount: 0
+  };
+
+  document.getElementById('wheel-ai-p1-name').textContent = '🧑 你';
+  document.getElementById('wheel-ai-p2-name').textContent = '🤖 AI-阿强';
+  document.getElementById('wheel-ai-p3-name').textContent = '🤖 AI-小敏';
+  document.getElementById('wheel-ai-p4-name').textContent = '🤖 AI-大力';
+  document.getElementById('wheel-ai-result').textContent = '🎡 点击转动转盘';
+  document.getElementById('wheel-ai-target').innerHTML = '4位玩家，命运之轮会选中谁？';
+  document.getElementById('wheel-ai-spin-btn').disabled = false;
+  document.getElementById('wheel-ai-spin-btn').textContent = '🎡 转动转盘！';
+}
+
+function spinWheelAI() {
+  var btn = document.getElementById('wheel-ai-spin-btn');
+  btn.disabled = true;
+  btn.textContent = '🎡 转动中...';
+
+  aiWheel.spinCount++;
+  var targetIdx = Math.floor(Math.random() * aiWheel.players.length);
+  var target = aiWheel.players[targetIdx];
+  var isYou = targetIdx === 0;
+
+  var punishments = [
+    {type: '🍻', text: '请客喝一杯饮料！'},
+    {type: '🎤', text: '唱一首歌给大家听！'},
+    {type: '📸', text: '拍张自拍发群里！'},
+    {type: '💪', text: '做10个俯卧撑！'},
+    {type: '🎁', text: '获得小礼物一份！'},
+    {type: '😈', text: '发一个红包！'},
+    {type: '🤡', text: '学动物叫3声！'},
+    {type: '🧘', text: '单脚站立30秒！'}
+  ];
+  var punIdx = Math.floor(Math.random() * punishments.length);
+  var pun = punishments[punIdx];
+
+  var visual = document.getElementById('wheel-ai-visual');
+  var spinDeg = 720 + Math.random() * 720;
+  visual.style.transition = 'transform 2.5s cubic-bezier(0.2,0.8,0.3,1)';
+  visual.style.transform = 'rotate(' + spinDeg + 'deg)';
+
+  setTimeout(function() {
+    visual.style.transition = 'none';
+    document.getElementById('wheel-ai-result').textContent = '🎯 ' + target.emoji + ' ' + target.name + ' 被选中！';
+    document.getElementById('wheel-ai-target').innerHTML =
+      '<div style="font-size:16px;font-weight:700;margin-bottom:4px">' + pun.type + ' ' + (isYou ? '你的命运！' : target.name + '的命运！') + '</div>' +
+      '<div style="font-size:14px">' + pun.text + '</div>';
+
+    btn.disabled = false;
+    btn.textContent = '🎡 再转一次！';
+  }, 2600);
+}
+
+// ===================== 猜拳AI =====================
+var RPS_EMOJI = {rock:'✊', scissors:'✌️', paper:'🖐️'};
+var RPS_BEATS = {rock:'scissors', scissors:'paper', paper:'rock'};
+
+function startAIRPS() {
+  resetAllAI();
+  hideAllGamePanels();
+  document.getElementById('game-rps').style.display = 'block';
+  document.getElementById('rps-round-label').style.display = 'none';
+  document.getElementById('rps-scoreboard').style.display = 'none';
+  document.getElementById('rps-my-choice').style.display = 'none';
+  document.getElementById('rps-btns').style.display = 'none';
+  document.getElementById('rps-result-text').style.display = 'none';
+  document.getElementById('rps-ai-mode').style.display = 'block';
+
+  aiRPS = {
+    active: true,
+    myScore: 0,
+    aiScore: 0,
+    round: 1,
+    maxRounds: 3,
+    gameOver: false
+  };
+
+  document.getElementById('rps-ai-my-score').textContent = '0';
+  document.getElementById('rps-ai-opp-score').textContent = '0';
+  document.getElementById('rps-ai-round').textContent = '第1局 · 三局两胜';
+  document.getElementById('rps-ai-my-choice').textContent = '🤔';
+  document.getElementById('rps-ai-result-text').innerHTML = '选择你的招式！';
+  document.getElementById('rps-ai-btn-rock').disabled = false;
+  document.getElementById('rps-ai-btn-scissors').disabled = false;
+  document.getElementById('rps-ai-btn-paper').disabled = false;
+}
+
+function rpsAIChoose(choice) {
+  if (aiRPS.gameOver) return;
+
+  document.getElementById('rps-ai-btn-rock').disabled = true;
+  document.getElementById('rps-ai-btn-scissors').disabled = true;
+  document.getElementById('rps-ai-btn-paper').disabled = true;
+
+  var choices = ['rock', 'scissors', 'paper'];
+  var aiChoice = choices[Math.floor(Math.random() * 3)];
+
+  document.getElementById('rps-ai-my-choice').textContent = RPS_EMOJI[choice] + ' vs ' + RPS_EMOJI[aiChoice];
+
+  var resultText;
+  if (choice === aiChoice) {
+    resultText = '🤝 平局！都是' + (choice === 'rock' ? '石头' : choice === 'scissors' ? '剪刀' : '布');
+  } else if (RPS_BEATS[choice] === aiChoice) {
+    aiRPS.myScore++;
+    resultText = '🎉 你赢了！' + RPS_EMOJI[choice] + ' 赢 ' + RPS_EMOJI[aiChoice];
+  } else {
+    aiRPS.aiScore++;
+    resultText = '😢 AI赢了！' + RPS_EMOJI[aiChoice] + ' 赢 ' + RPS_EMOJI[choice];
+  }
+
+  document.getElementById('rps-ai-my-score').textContent = aiRPS.myScore;
+  document.getElementById('rps-ai-opp-score').textContent = aiRPS.aiScore;
+  document.getElementById('rps-ai-result-text').innerHTML = resultText;
+
+  aiRPS.round++;
+  if (aiRPS.myScore >= 2 || aiRPS.aiScore >= 2 || aiRPS.round > 5) {
+    aiRPS.gameOver = true;
+    var finalMsg = aiRPS.myScore > aiRPS.aiScore
+      ? '🎉 你赢了！最终比分 ' + aiRPS.myScore + ':' + aiRPS.aiScore
+      : aiRPS.myScore === aiRPS.aiScore
+        ? '🤝 平局！' + aiRPS.myScore + ':' + aiRPS.aiScore
+        : '😢 AI获胜！' + aiRPS.myScore + ':' + aiRPS.aiScore;
+    document.getElementById('rps-ai-result-text').innerHTML =
+      '<div style="font-size:16px;font-weight:700">' + finalMsg + '</div>' +
+      '<button class="btn-primary btn-sm" style="margin-top:8px" onclick="startAIRPS()">再来一局</button>';
+    document.getElementById('rps-ai-round').textContent = '比赛结束';
+  } else {
+    document.getElementById('rps-ai-round').textContent = '第' + aiRPS.round + '局 · 三局两胜';
+    setTimeout(function() {
+      document.getElementById('rps-ai-btn-rock').disabled = false;
+      document.getElementById('rps-ai-btn-scissors').disabled = false;
+      document.getElementById('rps-ai-btn-paper').disabled = false;
+      document.getElementById('rps-ai-my-choice').textContent = '🤔';
+    }, 800);
+  }
+}
+
+// ===================== 五子棋AI =====================
+var GOMOKU_SIZE = 15;
+
+function startAIGomoku() {
+  resetAllAI();
+  hideAllGamePanels();
+  document.getElementById('game-gomoku').style.display = 'block';
+  document.getElementById('gomoku-board').style.display = 'none';
+  document.getElementById('gomoku-turn-info').style.display = 'none';
+  document.getElementById('gomoku-timer-fill').style.display = 'none';
+  document.getElementById('gomoku-undo-btn').style.display = 'none';
+  document.getElementById('gomoku-result').style.display = 'none';
+  document.getElementById('gomoku-ai-mode').style.display = 'block';
+
+  var board = [];
+  for (var r = 0; r < GOMOKU_SIZE; r++) {
+    board[r] = [];
+    for (var c = 0; c < GOMOKU_SIZE; c++) board[r][c] = 0;
+  }
+
+  aiGomoku = {
+    active: true,
+    board: board,
+    turn: 1,
+    moveCount: 0,
+    gameOver: false,
+    history: [],
+    lastMove: null
+  };
+
+  document.getElementById('gomoku-ai-turn').textContent = '🧑 你的回合（⚫黑子）';
+  document.getElementById('gomoku-ai-status').textContent = '你 vs AI';
+  document.getElementById('gomoku-ai-undo-btn').disabled = true;
+  document.getElementById('gomoku-ai-result').innerHTML = '';
+  gomokuAIRender();
+}
+
+function gomokuAIRender() {
+  var container = document.getElementById('gomoku-ai-board');
+  if (!container) return;
+  container.innerHTML = '';
+  container.style.display = 'grid';
+  container.style.gridTemplateColumns = 'repeat(' + GOMOKU_SIZE + ', 1fr)';
+  container.style.background = '#e8c97a';
+  container.style.borderRadius = '8px';
+  container.style.padding = '2px';
+  container.style.aspectRatio = '1';
+
+  for (var r = 0; r < GOMOKU_SIZE; r++) {
+    for (var c = 0; c < GOMOKU_SIZE; c++) {
+      var cell = document.createElement('div');
+      cell.style.aspectRatio = '1';
+      cell.style.background = '#e8c97a';
+      cell.style.border = '0.5px solid #c4a345';
+      cell.style.display = 'flex';
+      cell.style.alignItems = 'center';
+      cell.style.justifyContent = 'center';
+      cell.style.fontSize = '14px';
+      cell.style.cursor = 'pointer';
+      cell.style.position = 'relative';
+
+      var val = aiGomoku.board[r][c];
+      if (val === 1) {
+        cell.innerHTML = '<div style="width:75%;height:75%;border-radius:50%;background:#222;box-shadow:2px 2px 4px rgba(0,0,0,0.3)"></div>';
+        cell.style.cursor = 'default';
+      } else if (val === 2) {
+        cell.innerHTML = '<div style="width:75%;height:75%;border-radius:50%;background:#fff;box-shadow:2px 2px 4px rgba(0,0,0,0.2),inset -1px -1px 2px rgba(0,0,0,0.1)"></div>';
+        cell.style.cursor = 'default';
+      } else if (!aiGomoku.gameOver && aiGomoku.turn === 1) {
+        cell.onclick = (function(rr, cc) { return function() { gomokuAIMove(rr, cc); }; })(r, c);
+      }
+
+      if (aiGomoku.lastMove && aiGomoku.lastMove.r === r && aiGomoku.lastMove.c === c) {
+        cell.style.boxShadow = 'inset 0 0 0 2px #ff4444';
+      }
+
+      container.appendChild(cell);
+    }
+  }
+}
+
+function gomokuAIMove(row, col) {
+  if (aiGomoku.gameOver || aiGomoku.turn !== 1) return;
+  if (aiGomoku.board[row][col] !== 0) return;
+
+  aiGomoku.board[row][col] = 1;
+  aiGomoku.moveCount++;
+  aiGomoku.lastMove = {r: row, c: col};
+  aiGomoku.history.push({r: row, c: col, player: 1});
+
+  if (gomokuAICheckWin(row, col, 1)) {
+    aiGomoku.gameOver = true;
+    gomokuAIRender();
+    document.getElementById('gomoku-ai-result').innerHTML =
+      '<div style="font-size:16px;font-weight:700;color:var(--primary)">🎉 你赢了！</div>' +
+      '<button class="btn-primary btn-sm" style="margin-top:8px" onclick="startAIGomoku()">再来一局</button>';
+    document.getElementById('gomoku-ai-turn').textContent = '🎉 你赢了！';
+    return;
+  }
+
+  if (aiGomoku.moveCount >= GOMOKU_SIZE * GOMOKU_SIZE) {
+    aiGomoku.gameOver = true;
+    gomokuAIRender();
+    document.getElementById('gomoku-ai-result').innerHTML =
+      '<div style="font-size:16px;font-weight:700">🤝 平局！</div>' +
+      '<button class="btn-primary btn-sm" style="margin-top:8px" onclick="startAIGomoku()">再来一局</button>';
+    document.getElementById('gomoku-ai-turn').textContent = '🤝 平局';
+    return;
+  }
+
+  aiGomoku.turn = 2;
+  document.getElementById('gomoku-ai-turn').textContent = '🤖 AI思考中...';
+  document.getElementById('gomoku-ai-status').textContent = '⚪ AI下棋';
+  document.getElementById('gomoku-ai-undo-btn').disabled = true;
+  gomokuAIRender();
+
+  setTimeout(function() { gomokuAIAutoMove(); }, 500);
+}
+
+function gomokuAIAutoMove() {
+  if (aiGomoku.gameOver) return;
+
+  var best = gomokuAIFindBestMove(2);
+  if (!best) {
+    for (var r = 0; r < GOMOKU_SIZE; r++) {
+      for (var c = 0; c < GOMOKU_SIZE; c++) {
+        if (aiGomoku.board[r][c] === 0) { best = {r: r, c: c}; break; }
+      }
+      if (best) break;
+    }
+  }
+
+  if (!best) {
+    aiGomoku.gameOver = true;
+    document.getElementById('gomoku-ai-result').innerHTML = '<div style="font-size:16px;font-weight:700">🤝 平局！</div>';
+    document.getElementById('gomoku-ai-turn').textContent = '🤝 平局';
+    return;
+  }
+
+  aiGomoku.board[best.r][best.c] = 2;
+  aiGomoku.moveCount++;
+  aiGomoku.lastMove = {r: best.r, c: best.c};
+  aiGomoku.history.push({r: best.r, c: best.c, player: 2});
+
+  if (gomokuAICheckWin(best.r, best.c, 2)) {
+    aiGomoku.gameOver = true;
+    gomokuAIRender();
+    document.getElementById('gomoku-ai-result').innerHTML =
+      '<div style="font-size:16px;font-weight:700;color:var(--error)">😢 AI赢了！</div>' +
+      '<button class="btn-primary btn-sm" style="margin-top:8px" onclick="startAIGomoku()">再来一局</button>';
+    document.getElementById('gomoku-ai-turn').textContent = '😢 AI赢了';
+    document.getElementById('gomoku-ai-undo-btn').disabled = true;
+    return;
+  }
+
+  aiGomoku.turn = 1;
+  document.getElementById('gomoku-ai-turn').textContent = '🧑 你的回合（⚫黑子）';
+  document.getElementById('gomoku-ai-status').textContent = '你 vs AI';
+  document.getElementById('gomoku-ai-undo-btn').disabled = false;
+  gomokuAIRender();
+}
+
+function gomokuAICheckWin(row, col, player) {
+  var board = aiGomoku.board;
+  var dirs = [[1,0],[0,1],[1,1],[1,-1]];
+  for (var d = 0; d < dirs.length; d++) {
+    var count = 1;
+    var dr = dirs[d][0], dc = dirs[d][1];
+    for (var i = 1; i < 5; i++) {
+      var nr = row + dr * i, nc = col + dc * i;
+      if (nr >= 0 && nr < GOMOKU_SIZE && nc >= 0 && nc < GOMOKU_SIZE && board[nr][nc] === player) count++;
+      else break;
+    }
+    for (var i = 1; i < 5; i++) {
+      var nr = row - dr * i, nc = col - dc * i;
+      if (nr >= 0 && nr < GOMOKU_SIZE && nc >= 0 && nc < GOMOKU_SIZE && board[nr][nc] === player) count++;
+      else break;
+    }
+    if (count >= 5) return true;
+  }
+  return false;
+}
+
+function gomokuAIFindBestMove(player) {
+  var board = aiGomoku.board;
+  var opponent = player === 1 ? 2 : 1;
+  var bestScore = -1;
+  var bestMove = null;
+
+  for (var r = 0; r < GOMOKU_SIZE; r++) {
+    for (var c = 0; c < GOMOKU_SIZE; c++) {
+      if (board[r][c] !== 0) continue;
+
+      var hasNeighbor = false;
+      for (var dr = -2; dr <= 2 && !hasNeighbor; dr++) {
+        for (var dc = -2; dc <= 2 && !hasNeighbor; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          var nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < GOMOKU_SIZE && nc >= 0 && nc < GOMOKU_SIZE && board[nr][nc] !== 0) {
+            hasNeighbor = true;
+          }
+        }
+      }
+      if (!hasNeighbor) continue;
+
+      var score = 0;
+      score += gomokuAIEvalDir(r, c, player) * 3;
+      score += gomokuAIEvalDir(r, c, opponent) * 5;
+
+      var centerDist = Math.abs(r - 7) + Math.abs(c - 7);
+      score += Math.max(0, 14 - centerDist) * 0.5;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = {r: r, c: c};
+      }
+    }
+  }
+  return bestMove;
+}
+
+function gomokuAIEvalDir(row, col, player) {
+  var board = aiGomoku.board;
+  var score = 0;
+  var dirs = [[1,0],[0,1],[1,1],[1,-1]];
+
+  for (var d = 0; d < dirs.length; d++) {
+    var dr = dirs[d][0], dc = dirs[d][1];
+    var count = 1;
+    var openEnds = 0;
+
+    var pCount = 0;
+    for (var i = 1; i < 5; i++) {
+      var nr = row + dr * i, nc = col + dc * i;
+      if (nr >= 0 && nr < GOMOKU_SIZE && nc >= 0 && nc < GOMOKU_SIZE && board[nr][nc] === player) pCount++;
+      else {
+        if (nr >= 0 && nr < GOMOKU_SIZE && nc >= 0 && nc < GOMOKU_SIZE && board[nr][nc] === 0) openEnds++;
+        break;
+      }
+    }
+
+    var nCount = 0;
+    for (var i = 1; i < 5; i++) {
+      var nr = row - dr * i, nc = col - dc * i;
+      if (nr >= 0 && nr < GOMOKU_SIZE && nc >= 0 && nc < GOMOKU_SIZE && board[nr][nc] === player) nCount++;
+      else {
+        if (nr >= 0 && nr < GOMOKU_SIZE && nc >= 0 && nc < GOMOKU_SIZE && board[nr][nc] === 0) openEnds++;
+        break;
+      }
+    }
+
+    count += pCount + nCount;
+
+    if (count >= 5) score += 10000;
+    else if (count === 4 && openEnds > 0) score += 1000;
+    else if (count === 4) score += 500;
+    else if (count === 3 && openEnds > 1) score += 200;
+    else if (count === 3 && openEnds > 0) score += 100;
+    else if (count === 2 && openEnds > 1) score += 20;
+    else if (count === 2 && openEnds > 0) score += 10;
+    else if (count === 1) score += 1;
+  }
+  return score;
+}
+
+function gomokuAIUndo() {
+  if (aiGomoku.gameOver || aiGomoku.turn !== 1) return;
+  if (aiGomoku.history.length < 2) return;
+
+  var aiLast = aiGomoku.history.pop();
+  var humanLast = aiGomoku.history.pop();
+  if (aiLast) aiGomoku.board[aiLast.r][aiLast.c] = 0;
+  if (humanLast) aiGomoku.board[humanLast.r][humanLast.c] = 0;
+
+  aiGomoku.moveCount -= 2;
+  aiGomoku.turn = 1;
+
+  if (aiGomoku.history.length > 0) {
+    aiGomoku.lastMove = aiGomoku.history[aiGomoku.history.length - 1];
+  } else {
+    aiGomoku.lastMove = null;
+  }
+
+  document.getElementById('gomoku-ai-turn').textContent = '🧑 你的回合（⚫黑子）';
+  document.getElementById('gomoku-ai-status').textContent = '你 vs AI';
+  document.getElementById('gomoku-ai-undo-btn').disabled = aiGomoku.history.length < 2;
+  gomokuAIRender();
+}
+
+// ===================== 掼蛋 (本地4人 + 单人AI) =====================
+function startGuandanGame(mode) {
+  document.getElementById('game-entry').style.display = 'none';
+  document.getElementById('game-room-screen').style.display = 'none';
+  document.getElementById('game-lobby').style.display = 'none';
+  document.getElementById('game-guandan').style.display = 'block';
+  gdInit(mode);
+}
+
+var GD_RANK_VAL = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14};
+var GD_SUITS = ['♠','♥','♣','♦'];
+var GD_RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+var GD_TYPE_LABEL = {single:'单张',pair:'对子',triple:'三条','triple1':'三带一','triple2':'三带二',
+  'consec-pairs':'连对',bomb:'💣炸弹',joker_bomb:'🚀火箭',straight:'顺子'};
+
+var gd = {};
+
+function gdInit(mode) {
+  var deck = [];
+  var id = 0;
+  for (var d = 0; d < 2; d++) {
+    for (var si = 0; si < GD_SUITS.length; si++) {
+      for (var ri = 0; ri < GD_RANKS.length; ri++) {
+        deck.push({ suit: GD_SUITS[si], rank: GD_RANKS[ri], id: id++ });
+      }
+    }
+  }
+  deck.push({ suit: 's', rank: '🃏', id: id++, joker: 'small' });
+  deck.push({ suit: 's', rank: '🃏', id: id++, joker: 'small' });
+  deck.push({ suit: 'b', rank: '🃏', id: id++, joker: 'big' });
+  deck.push({ suit: 'b', rank: '🃏', id: id++, joker: 'big' });
+  gdShuffle(deck);
+
+  var isSingle = (mode === 'single');
+  var humanName = isSingle ? (document.getElementById('input-nickname').value.trim() || '我') : '玩家1';
+
+  gd = {
+    mode: mode,
+    players: [
+      { name: humanName,   cards: deck.slice(0,27).sort(gdSort), eliminated: false, team: 1, isAI: false },
+      { name: isSingle ? 'AI-小智'  : '玩家2', cards: deck.slice(27,54).sort(gdSort), eliminated: false, team: 2, isAI: isSingle },
+      { name: isSingle ? 'AI-小慧'  : '玩家3', cards: deck.slice(54,81).sort(gdSort), eliminated: false, team: 1, isAI: isSingle },
+      { name: isSingle ? 'AI-小灵'  : '玩家4', cards: deck.slice(81,108).sort(gdSort), eliminated: false, team: 2, isAI: isSingle }
+    ],
+    current: 0, turnOwner: 0, passCount: 0, roundCount: 0,
+    selected: [],
+    lastPlay: null, roundPlays: [],
+    prevRoundPlays: [],
+    passedThisRound: [false, false, false, false],
+    phase: 'playing', winnerTeam: null, finishOrder: [],
+    aiTimer: null, level: 2, humanIndex: 0
+  };
+
+  if (isSingle) { gd.humanIndex = 0; }
+
+  gdRender();
+  gdCheckAITurn();
+
+  if (gd._safetyTimer) clearInterval(gd._safetyTimer);
+  gd._safetyTimer = setInterval(function() {
+    if (gd.phase === 'gameOver' || gd.phase === 'idle') { clearInterval(gd._safetyTimer); return; }
+    var p = gd.players[gd.current];
+    if (!p) { gdRender(); return; }
+    if (p.isAI && !p.eliminated) {
+      try { gdAIAutoPlay(); } catch(e) {
+        gdNextTurn();
+        if (gd.players[gd.current] && gd.players[gd.current].isAI) {
+          setTimeout(function(){ gdCheckAITurn(); }, 10);
+        } else { gdRender(); }
+      }
+    }
+  }, 2000);
+}
+
+function gdSort(a, b) {
+  var av = a.joker ? (a.joker === 'big' ? 99 : 98) : GD_RANK_VAL[a.rank];
+  var bv = b.joker ? (b.joker === 'big' ? 99 : 98) : GD_RANK_VAL[b.rank];
+  if (av !== bv) return av - bv;
+  if (a.suit !== 's' && a.suit !== 'b' && b.suit !== 's' && b.suit !== 'b') {
+    return GD_SUITS.indexOf(a.suit) - GD_SUITS.indexOf(b.suit);
+  }
+  return 0;
+}
+
+function gdShuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+}
+
+function gdCardVal(c) {
+  if (c.joker === 'big') return 99;
+  if (c.joker === 'small') return 98;
+  return GD_RANK_VAL[c.rank];
+}
+
+function gdAnalyze(cards) {
+  if (!cards || cards.length === 0) return null;
+  var vals = cards.map(gdCardVal).sort(function(a,b){return a-b;});
+  var same = true;
+  for (var i = 1; i < vals.length; i++) { if (vals[i] !== vals[0]) { same = false; break; } }
+
+  if (cards.length === 1) {
+    var c = cards[0];
+    if (c.joker === 'big') return {type:'single', rank:99, len:1, key:'single_99'};
+    if (c.joker === 'small') return {type:'single', rank:98, len:1, key:'single_98'};
+    return {type:'single', rank:GD_RANK_VAL[c.rank], len:1, key:'single_' + GD_RANK_VAL[c.rank]};
+  }
+  if (cards.length === 2 && same) { return {type:'pair', rank:vals[0], len:2, key:'pair_' + vals[0]}; }
+  if (cards.length === 3 && same) { return {type:'triple', rank:vals[0], len:3, key:'triple_' + vals[0]}; }
+
+  if (cards.length >= 2) {
+    var hasSmall = false, hasBig = false;
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].joker === 'small') hasSmall = true;
+      if (cards[i].joker === 'big') hasBig = true;
+    }
+    if (hasSmall && hasBig) { return {type:'joker_bomb', rank:100, len:cards.length, key:'joker_bomb_' + cards.length}; }
+  }
+
+  if (same && cards.length >= 4 && vals[0] < 98) { return {type:'bomb', rank:vals[0], len:cards.length, key:'bomb_' + vals[0] + '_' + cards.length}; }
+
+  if (cards.length === 5) {
+    var rankCounts = {};
+    for (var i = 0; i < vals.length; i++) { rankCounts[vals[i]] = (rankCounts[vals[i]] || 0) + 1; }
+    var counts = Object.values(rankCounts).sort(function(a,b){return b-a;});
+    if (counts.length === 2 && ((counts[0] === 3 && counts[1] === 2) || (counts[0] === 2 && counts[1] === 3))) {
+      var tripleRank = -1;
+      for (var r in rankCounts) { if (rankCounts[r] >= 3) { tripleRank = parseInt(r); break; } }
+      if (tripleRank > 0) return {type:'triple2', rank:tripleRank, len:5, key:'triple2_' + tripleRank};
+    }
+  }
+
+  if (cards.length === 4 && !same) {
+    var rankCounts = {};
+    for (var i = 0; i < vals.length; i++) { rankCounts[vals[i]] = (rankCounts[vals[i]] || 0) + 1; }
+    var counts = Object.values(rankCounts).sort(function(a,b){return b-a;});
+    if (counts.length === 2 && counts[0] === 1 && counts[1] === 3) {
+      var tripleRank = -1;
+      for (var r in rankCounts) { if (rankCounts[r] >= 3) { tripleRank = parseInt(r); break; } }
+      if (tripleRank > 0) return {type:'triple1', rank:tripleRank, len:4, key:'triple1_' + tripleRank};
+    }
+  }
+
+  if (cards.length >= 6 && cards.length % 2 === 0) {
+    var rankCounts = {};
+    for (var i = 0; i < vals.length; i++) { rankCounts[vals[i]] = (rankCounts[vals[i]] || 0) + 1; }
+    var pairRanks = [];
+    var valid = true;
+    for (var r in rankCounts) {
+      if (rankCounts[r] === 2) pairRanks.push(parseInt(r));
+      else { valid = false; break; }
+    }
+    if (valid && pairRanks.length >= 3) {
+      pairRanks.sort(function(a,b){return a-b;});
+      var ok = true;
+      for (var i = 1; i < pairRanks.length; i++) { if (pairRanks[i] !== pairRanks[i-1] + 1) { ok = false; break; } }
+      if (ok) return {type:'consec-pairs', rank:pairRanks[pairRanks.length-1], len:pairRanks.length, key:'cp_' + pairRanks.length + '_' + pairRanks[0]};
+    }
+  }
+
+  if (cards.length >= 5) {
+    var uniq = [], seen = {};
+    for (var i = 0; i < vals.length; i++) { if (!seen[vals[i]]) { uniq.push(vals[i]); seen[vals[i]] = true; } }
+    if (uniq.length === cards.length) {
+      uniq.sort(function(a,b){return a-b;});
+      var ok = true;
+      for (var i = 1; i < uniq.length; i++) { if (uniq[i] !== uniq[i-1] + 1) { ok = false; break; } }
+      if (ok) return {type:'straight', rank:uniq[uniq.length-1], len:uniq.length, key:'straight_' + uniq[0] + '_' + uniq.length};
+    }
+  }
+  return null;
+}
+
+function gdCanBeat(play1, play2) {
+  if (!play2) return true;
+  if (!play1 || !play1.type) return false;
+  if (play1.type === 'joker_bomb') return true;
+  if (play2.type === 'joker_bomb') return false;
+  if (play1.type === 'bomb' && play2.type !== 'bomb') return true;
+  if (play2.type === 'bomb' && play1.type !== 'bomb') return false;
+  if (play1.type !== play2.type) return false;
+  if (play1.type === 'bomb') {
+    if (play1.len !== play2.len) return play1.len > play2.len;
+    return play1.rank > play2.rank;
+  }
+  if (play1.type === 'straight') {
+    if (play1.len !== play2.len) return false;
+    return play1.rank > play2.rank;
+  }
+  if (play1.type === 'triple1' || play1.type === 'triple2') { return play1.rank > play2.rank; }
+  if (play1.type === 'consec-pairs') {
+    if (play1.len !== play2.len) return false;
+    return play1.rank > play2.rank;
+  }
+  if (play1.key.split('_')[0] !== play2.key.split('_')[0]) return false;
+  return play1.rank > play2.rank;
+}
+
+// ============ AI Logic ============
+function gdAIFindPlay(hand, lastPlay) {
+  if (!hand || hand.length === 0) return null;
+
+  if (!lastPlay) {
+    for (var i = 0; i < hand.length - 1; i++) {
+      if (gdCardVal(hand[i]) === gdCardVal(hand[i+1])) {
+        var test = gdAnalyze([hand[i], hand[i+1]]);
+        if (test) return {indices: [i, i+1], play: test};
+      }
+    }
+    return {indices: [0], play: gdAnalyze([hand[0]])};
+  }
+
+  var lastType = lastPlay.type;
+  var lastRank = lastPlay.rank;
+
+  // Single
+  if (lastType === 'single') {
+    for (var i = 0; i < hand.length; i++) {
+      if (gdCardVal(hand[i]) > lastRank) {
+        var test = gdAnalyze([hand[i]]);
+        if (test && gdCanBeat(test, lastPlay)) return {indices: [i], play: test};
+      }
+    }
+  }
+
+  // Pair
+  if (lastType === 'pair') {
+    for (var i = 0; i < hand.length - 1; i++) {
+      if (gdCardVal(hand[i]) === gdCardVal(hand[i+1]) && gdCardVal(hand[i]) > lastRank) {
+        var test = gdAnalyze([hand[i], hand[i+1]]);
+        if (test && gdCanBeat(test, lastPlay)) return {indices: [i, i+1], play: test};
+      }
+    }
+  }
+
+  // Triple
+  if (lastType === 'triple') {
+    for (var i = 0; i < hand.length - 2; i++) {
+      if (gdCardVal(hand[i]) === gdCardVal(hand[i+1]) && gdCardVal(hand[i]) === gdCardVal(hand[i+2]) && gdCardVal(hand[i]) > lastRank) {
+        var test = gdAnalyze([hand[i], hand[i+1], hand[i+2]]);
+        if (test && gdCanBeat(test, lastPlay)) return {indices: [i, i+1, i+2], play: test};
+      }
+    }
+  }
+
+  // triple1
+  if (lastType === 'triple1') {
+    for (var i = 0; i < hand.length - 2; i++) {
+      if (gdCardVal(hand[i]) === gdCardVal(hand[i+1]) && gdCardVal(hand[i]) === gdCardVal(hand[i+2]) && gdCardVal(hand[i]) > lastRank) {
+        for (var k = 0; k < hand.length; k++) {
+          if (k < i || k > i+2) {
+            var cards = [hand[i], hand[i+1], hand[i+2], hand[k]];
+            var test = gdAnalyze(cards);
+            if (test && gdCanBeat(test, lastPlay)) return {indices: [i, i+1, i+2, k], play: test};
+          }
+        }
+      }
+    }
+  }
+
+  // triple2
+  if (lastType === 'triple2') {
+    for (var i = 0; i < hand.length - 2; i++) {
+      if (gdCardVal(hand[i]) === gdCardVal(hand[i+1]) && gdCardVal(hand[i]) === gdCardVal(hand[i+2]) && gdCardVal(hand[i]) > lastRank) {
+        var tripleVal = gdCardVal(hand[i]);
+        for (var k = 0; k < hand.length - 1; k++) {
+          if (gdCardVal(hand[k]) === gdCardVal(hand[k+1]) && gdCardVal(hand[k]) !== tripleVal) {
+            if ((k < i || k > i+2) && ((k+1) < i || (k+1) > i+2)) {
+              var cards = [hand[i], hand[i+1], hand[i+2], hand[k], hand[k+1]];
+              var test = gdAnalyze(cards);
+              if (test && gdCanBeat(test, lastPlay)) return {indices: [i, i+1, i+2, k, k+1], play: test};
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // consec-pairs
+  if (lastType === 'consec-pairs') {
+    var pairLen = lastLen || lastPlay.len;
+    var pairRanks = [];
+    for (var i = 0; i < hand.length - 1; i++) {
+      if (gdCardVal(hand[i]) === gdCardVal(hand[i+1])) {
+        var v = gdCardVal(hand[i]);
+        if (pairRanks.length === 0 || v !== pairRanks[pairRanks.length-1]) { pairRanks.push(v); }
+      }
+    }
+    if (pairRanks.length >= pairLen) {
+      for (var si = 0; si <= pairRanks.length - pairLen; si++) {
+        var ok = true;
+        for (var ci = 1; ci < pairLen; ci++) { if (pairRanks[si+ci] !== pairRanks[si+ci-1] + 1) { ok = false; break; } }
+        if (ok && pairRanks[si+pairLen-1] > lastRank) {
+          var indices = [];
+          for (var pi = 0; pi < pairLen; pi++) {
+            var found = 0;
+            for (var j = 0; j < hand.length; j++) {
+              if (gdCardVal(hand[j]) === pairRanks[si] + pi && indices.indexOf(j) < 0 && found < 2) { indices.push(j); found++; }
+            }
+          }
+          if (indices.length === pairLen * 2) {
+            var cards = indices.map(function(idx){return hand[idx];});
+            var test = gdAnalyze(cards);
+            if (test && gdCanBeat(test, lastPlay)) return {indices: indices, play: test};
+          }
+        }
+      }
+    }
+  }
+
+  // Straight
+  if (lastType === 'straight') {
+    var needLen = lastPlay.len;
+    var unique = [], seen = {};
+    for (var i = 0; i < hand.length; i++) {
+      var v = gdCardVal(hand[i]);
+      if (v >= 98) continue;
+      if (!seen[v]) { unique.push({val: v, idx: i}); seen[v] = true; }
+    }
+    unique.sort(function(a,b){return a.val - b.val;});
+    if (unique.length >= needLen) {
+      for (var start = 0; start <= unique.length - needLen; start++) {
+        var ok = true;
+        for (var j = 1; j < needLen; j++) { if (unique[start + j].val !== unique[start + j - 1].val + 1) { ok = false; break; } }
+        if (ok) {
+          var endRank = unique[start + needLen - 1].val;
+          if (endRank > lastRank) {
+            var indices = [];
+            for (var j = 0; j < needLen; j++) indices.push(unique[start + j].idx);
+            var cards = indices.map(function(ix){return hand[ix];});
+            var test = gdAnalyze(cards);
+            if (test) return {indices: indices, play: test};
+          }
+        }
+      }
+    }
+  }
+
+  // Bomb
+  for (var start = 0; start < hand.length; ) {
+    var end = start;
+    while (end < hand.length && gdCardVal(hand[end]) === gdCardVal(hand[start])) end++;
+    var count = end - start;
+    if (count >= 4) {
+      var cards = [];
+      for (var j = start; j < end; j++) cards.push(hand[j]);
+      var test = gdAnalyze(cards);
+      if (test && gdCanBeat(test, lastPlay)) {
+        var indices = [];
+        for (var j = start; j < end; j++) indices.push(j);
+        return {indices: indices, play: test};
+      }
+    }
+    start = end;
+  }
+  // Joker bomb
+  var si = -1, bi = -1;
+  for (var i = 0; i < hand.length; i++) {
+    if (hand[i].joker === 'small') si = i;
+    if (hand[i].joker === 'big') bi = i;
+  }
+  if (si >= 0 && bi >= 0) {
+    var test = gdAnalyze([hand[si], hand[bi]]);
+    if (test) return {indices: [si, bi], play: test};
+  }
+
+  return null;
+}
+
+// ============ AI Auto-Play ============
+function gdCheckAITurn() {
+  if (gd.phase === 'gameOver' || gd.phase === 'idle') return;
+  var p = gd.players[gd.current];
+  if (!p || !p.isAI) { gdRender(); return; }
+
+  gdRender();
+  setTimeout(function() {
+    if (gd.phase === 'gameOver' || gd.phase === 'idle') return;
+    var cp = gd.players[gd.current];
+    if (!cp || !cp.isAI) { gdRender(); return; }
+    try { gdAIAutoPlay(); } catch(e) {
+      cp = gd.players[gd.current];
+      if (cp && !cp.eliminated && cp.cards.length > 0 && !gd.lastPlay) { cp.cards.splice(0,1); }
+      gdNextTurn();
+      gdCheckAITurn();
+    }
+  }, 50);
+}
+
+function gdAIAutoPlay() {
+  var p = gd.players[gd.current];
+  if (!p || !p.isAI) return;
+  if (p.eliminated) { gdNextTurn(); gdCheckAITurn(); return; }
+
+  var canPass = gd.lastPlay && gd.lastPlay.player !== gd.current;
+  var result = gdAIFindPlay(p.cards, gd.lastPlay);
+
+  if (result) {
+    var sorted = result.indices.slice().sort(function(a,b){return b-a;});
+    var removedCards = [];
+    for (var i = 0; i < sorted.length; i++) {
+      removedCards.push(p.cards[sorted[i]]);
+      p.cards.splice(sorted[i], 1);
+    }
+    gd.roundPlays.push({player: gd.current, cards: removedCards, type: result.play.type, rank: result.play.rank, len: result.play.len});
+    gd.passedThisRound[gd.current] = false;
+    if (gd.roundPlays.length === 1 && gd.prevRoundPlays.length > 0) { gd.prevRoundPlays = []; }
+    gd.lastPlay = { player: gd.current, cards: removedCards, type: result.play.type, rank: result.play.rank, len: result.play.len };
+    gd.turnOwner = gd.current;
+    gd.passCount = 0;
+    if (p.cards.length === 0) {
+      p.eliminated = true;
+      gd.finishOrder.push(gd.current);
+      var t1 = gd.players.filter(function(x){return x.eliminated && x.team === 1;}).length;
+      var t2 = gd.players.filter(function(x){return x.eliminated && x.team === 2;}).length;
+      if (t1 >= 2) { gd.winnerTeam = 1; gd.gameOver(); return; }
+      if (t2 >= 2) { gd.winnerTeam = 2; gd.gameOver(); return; }
+    }
+    gdNextTurn();
+    gdCheckAITurn();
+  } else if (!canPass && p.cards.length > 0) {
+    gd.lastPlay = null;
+    var fallback = gdAIFindPlay(p.cards, null);
+    if (fallback) {
+      var sorted = fallback.indices.slice().sort(function(a,b){return b-a;});
+      var removedCards = [];
+      for (var i = 0; i < sorted.length; i++) {
+        removedCards.push(p.cards[sorted[i]]);
+        p.cards.splice(sorted[i], 1);
+      }
+      gd.roundPlays.push({player: gd.current, cards: removedCards, type: fallback.play.type, rank: fallback.play.rank, len: fallback.play.len});
+      gd.passedThisRound[gd.current] = false;
+      if (gd.roundPlays.length === 1 && gd.prevRoundPlays.length > 0) { gd.prevRoundPlays = []; }
+      gd.lastPlay = { player: gd.current, cards: removedCards, type: fallback.play.type, rank: fallback.play.rank, len: fallback.play.len };
+      gd.turnOwner = gd.current;
+      gd.passCount = 0;
+      if (p.cards.length === 0) { p.eliminated = true; gd.finishOrder.push(gd.current); var t1 = gd.players.filter(function(x){return x.eliminated && x.team === 1;}).length; var t2 = gd.players.filter(function(x){return x.eliminated && x.team === 2;}).length; if (t1 >= 2) { gd.winnerTeam = 1; gd.gameOver(); return; } if (t2 >= 2) { gd.winnerTeam = 2; gd.gameOver(); return; } }
+      gdNextTurn(); gdCheckAITurn(); return;
+    }
+    gd.passCount++;
+    gd.passedThisRound[gd.current] = true;
+    gdNextTurn(); gdCheckAITurn();
+  } else {
+    gd.passCount++;
+    gd.passedThisRound[gd.current] = true;
+    gdNextTurn();
+    gdCheckAITurn();
+  }
+}
+
+// ============ Human Actions ============
+function gdSortHand() {
+  var p = gd.players[gd.current];
+  if (p.isAI) return;
+  gd.selected = [];
+  p.cards.sort(gdSort);
+  gdRender();
+  showToast('已按大小重新排列', '');
+}
+
+function gdToggleCard(idx) {
+  var p = gd.players[gd.current];
+  if (p.isAI) return;
+  var ci = gd.selected.indexOf(idx);
+  if (ci >= 0) { gd.selected.splice(ci, 1); }
+  else { gd.selected.push(idx); }
+  gd.selected.sort(function(a,b){return a-b;});
+  gdRender();
+}
+
+function gdHint() {
+  var p = gd.players[gd.current];
+  if (p.isAI) return;
+  var cards = p.cards;
+  var selectedCards = gd.selected.map(function(i){return cards[i];});
+
+  if (selectedCards.length === 0) {
+    var result = gdAIFindPlay(p.cards, gd.lastPlay);
+    if (result) { gd.selected = result.indices; gdRender(); return; }
+    for (var i = 0; i < cards.length; i++) {
+      var test = gdAnalyze([cards[i]]);
+      if (test && gdCanBeat(test, gd.lastPlay)) { gd.selected = [i]; gdRender(); return; }
+    }
+    showToast('没有合适的牌', 'error');
+    return;
+  }
+
+  var play = gdAnalyze(selectedCards);
+  if (!play || !gdCanBeat(play, gd.lastPlay)) { showToast('所选牌不能压上家', 'error'); return; }
+  gdRender();
+}
+
+function gdPlayCards() {
+  var p = gd.players[gd.current];
+  if (p.isAI) return;
+  if (gd.selected.length === 0) { showToast('请先选牌', 'error'); return; }
+
+  var selectedCards = gd.selected.map(function(i){return p.cards[i];});
+  var play = gdAnalyze(selectedCards);
+  if (!play) { showToast('牌型无效', 'error'); return; }
+  if (gd.lastPlay && !gdCanBeat(play, gd.lastPlay)) { showToast('压不住上家的牌', 'error'); return; }
+
+  p.cards = p.cards.filter(function(c, i){return gd.selected.indexOf(i) < 0;});
+
+  if (gd.roundPlays.length === 0 && gd.prevRoundPlays.length > 0) { gd.prevRoundPlays = []; }
+  gd.roundPlays.push({player: gd.current, cards: selectedCards, type: play.type, rank: play.rank, len: play.len});
+  gd.passedThisRound[gd.current] = false;
+
+  gd.lastPlay = { player: gd.current, cards: selectedCards, type: play.type, rank: play.rank, len: play.len };
+  gd.turnOwner = gd.current;
+  gd.passCount = 0;
+  gd.selected = [];
+
+  if (p.cards.length === 0) {
+    p.eliminated = true;
+    gd.finishOrder.push(gd.current);
+    showToast(p.name + ' 出完所有牌！🎉', 'success');
+    var t1 = gd.players.filter(function(p){return p.eliminated && p.team === 1;}).length;
+    var t2 = gd.players.filter(function(p){return p.eliminated && p.team === 2;}).length;
+    if (t1 >= 2) { gd.winnerTeam = 1; gd.gameOver(); return; }
+    if (t2 >= 2) { gd.winnerTeam = 2; gd.gameOver(); return; }
+  }
+
+  gdNextTurn();
+  gdRender();
+  gdCheckAITurn();
+}
+
+function gdPass() {
+  var p = gd.players[gd.current];
+  if (p.isAI) return;
+  if (gd.passCount >= 3) {
+    showToast('其他人都过了，必须出牌', 'error');
+    if (p.cards.length > 0) { gd.selected = [0]; gdPlayCards(); }
+    gd.selected = [];
+    gdRender();
+    return;
+  }
+  gd.passCount++;
+  gd.passedThisRound[gd.current] = true;
+  showToast(p.name + ' 过牌', '');
+  gdNextTurn();
+  gdRender();
+  gdCheckAITurn();
+}
+
+function gdNextTurn() {
+  for (var i = 0; i < 4; i++) {
+    gd.current = (gd.current + 1) % 4;
+    if (!gd.players[gd.current].eliminated) break;
+  }
+  if (gd.passCount >= 3) {
+    gd.prevRoundPlays = JSON.parse(JSON.stringify(gd.roundPlays));
+    gd.current = gd.turnOwner;
+    for (var i = 0; i < 4; i++) {
+      if (!gd.players[gd.current].eliminated) break;
+      gd.current = (gd.current + 1) % 4;
+    }
+    gd.lastPlay = null;
+    gd.roundPlays = [];
+    gd.passedThisRound = [false, false, false, false];
+    gd.passCount = 0;
+  }
+}
+
+function gdGameOver() {
+  gd.phase = 'gameOver';
+  if (gd.aiTimer) { clearTimeout(gd.aiTimer); gd.aiTimer = null; }
+  var team1Name = '🍃 红队（' + gd.players[0].name + ' & ' + gd.players[2].name + '）';
+  var team2Name = '🔥 黄队（' + gd.players[1].name + ' & ' + gd.players[3].name + '）';
+  var winName = gd.winnerTeam === 1 ? team1Name : team2Name;
+  var humanWon = (gd.winnerTeam === gd.players[gd.humanIndex].team);
+  gdRender();
+  document.getElementById('gd-result').style.display = 'block';
+  document.getElementById('gd-result').innerHTML =
+    '<div class="gd-win">' + (humanWon ? '🎉 你赢了！' : '😢 对手获胜') + '</div>' +
+    '<div style="font-size:14px;color:var(--text);margin:4px 0">' + winName + '</div>' +
+    '<div style="font-size:13px;color:var(--text2);margin:8px 0">' + gd.players.map(function(p){
+      return (p.isAI ? '🤖' : '😊') + p.name + ': ' + p.cards.length + '张' + (p.eliminated ? ' ✅' : '');
+    }).join(' · ') + '</div>' +
+    '<button class="gd-next-btn" onclick="gdInit(\'' + gd.mode + '\')">再来一局</button>';
+}
+
+function gdRender() {
+  var isHuman = !gd.players[gd.current].isAI;
+  var p = gd.players[gd.current];
+  var hand = document.getElementById('gd-hand');
+  var indicator = document.getElementById('gd-turn-indicator');
+  var prevPlayDiv = document.getElementById('gd-prev-play');
+  var result = document.getElementById('gd-result');
+  var btnPlay = document.getElementById('gd-btn-play');
+  var btnPass = document.getElementById('gd-btn-pass');
+  var btnHint = document.getElementById('gd-btn-hint');
+
+  if (gd.phase === 'gameOver') {
+    btnPlay.disabled = true; btnPass.disabled = true; btnHint.disabled = true;
+    return;
+  }
+
+  function gdMakeCard(c, extraCls) {
+    var cls = 'gd-card lil' + (extraCls || '');
+    if (c.joker === 'big') cls += ' joker-big';
+    else if (c.joker === 'small') cls += ' joker-small';
+    else if (c.suit === '♥' || c.suit === '♦') cls += ' red';
+    else cls += ' black';
+    return '<div class="' + cls + '"><span class="card-rank">' + c.rank + '</span><span class="card-suit">' + c.suit + '</span></div>';
+  }
+
+  function gdRenderPlayedCards(containerId, plays, isPrevRound) {
+    var cont = document.getElementById(containerId);
+    if (!cont) return;
+    var cls = 'player-played' + (isPrevRound ? ' prev-round' : '');
+    if (!plays || plays.length === 0) {
+      cont.innerHTML = '<div class="' + cls + '"><span class="no-play"></span></div>';
+      return;
+    }
+    var html = '<div class="' + cls + '">';
+    for (var ri = 0; ri < plays.length; ri++) {
+      var rp = plays[ri];
+      for (var ci = 0; ci < rp.cards.length; ci++) { html += gdMakeCard(rp.cards[ci]); }
+    }
+    html += '</div>';
+    cont.innerHTML = html;
+  }
+
+  var playerPositions = [0, 1, 2, 3];
+  var teamEmoji = ['🍃', '🔥'];
+  for (var pi = 0; pi < 4; pi++) {
+    var pl = gd.players[pi];
+    var teamEm = teamEmoji[pl.team - 1];
+    document.getElementById('gd-p' + pi + '-team').textContent = teamEm;
+    document.getElementById('gd-p' + pi + '-name').textContent = pl.name + (pl.isAI ? '🤖' : '');
+    document.getElementById('gd-p' + pi + '-count').textContent = pl.cards.length + '张';
+    var info = document.getElementById('gd-p' + pi + '-info');
+    if (info) { info.className = 'player-info' + (gd.current === pi ? ' turn-active' : ''); }
+    var st = document.getElementById('gd-p' + pi + '-status');
+    var statusText = '';
+    if (pl.eliminated) statusText = '✅ 出完';
+    else if (gd.passedThisRound[pi]) statusText = '🙅 过牌';
+    else if (gd.current === pi && !pl.isAI) statusText = '👈 你的回合';
+    else if (gd.current === pi && pl.isAI) statusText = '🤔';
+    st.textContent = statusText;
+
+    var roundPlayCards = [];
+    for (var ri = 0; ri < gd.roundPlays.length; ri++) {
+      if (gd.roundPlays[ri].player === pi) { roundPlayCards.push(gd.roundPlays[ri]); }
+    }
+    gdRenderPlayedCards('gd-played-' + pi, roundPlayCards, false);
+  }
+
+  for (var pi = 0; pi < 4; pi++) {
+    var hasCurrentRound = false;
+    for (var ri = 0; ri < gd.roundPlays.length; ri++) { if (gd.roundPlays[ri].player === pi) { hasCurrentRound = true; break; } }
+    if (!hasCurrentRound && gd.prevRoundPlays.length > 0) {
+      var prevCards = [];
+      for (var ri = 0; ri < gd.prevRoundPlays.length; ri++) {
+        if (gd.prevRoundPlays[ri].player === pi) { prevCards.push(gd.prevRoundPlays[ri]); }
+      }
+      gdRenderPlayedCards('gd-played-' + pi, prevCards, true);
+    }
+  }
+
+  var teamClass = p.team === 1 ? 'turn1' : 'turn2';
+  var canPass = gd.lastPlay && gd.lastPlay.player !== gd.current;
+  if (gd.passCount >= 3) canPass = false;
+  indicator.className = 'gd-turn-indicator ' + teamClass;
+  if (isHuman) { indicator.textContent = '🎯 你的回合'; }
+  else { indicator.textContent = '🎯 ' + p.name + (p.isAI ? ' 🤖' : '') + ' 思考中...'; }
+
+  if (gd.lastPlay && gd.roundPlays.length > 0) {
+    var lastPl = gd.players[gd.lastPlay.player];
+    var typeLabel = GD_TYPE_LABEL[gd.lastPlay.type] || gd.lastPlay.type;
+    prevPlayDiv.innerHTML = (lastPl ? lastPl.name : '玩家') + ' 出了 <strong>' + typeLabel + '</strong>';
+  } else if (gd.lastPlay && gd.roundPlays.length === 0) {
+    var lastPl = gd.players[gd.lastPlay.player];
+    var typeLabel = GD_TYPE_LABEL[gd.lastPlay.type] || gd.lastPlay.type;
+    prevPlayDiv.innerHTML = '新轮次 · 上家 ' + (lastPl ? lastPl.name : '') + ' ' + typeLabel;
+  } else { prevPlayDiv.innerHTML = gd.roundPlays.length === 0 ? '新轮次开始' : ''; }
+
+  var handPlayer = (gd.mode === 'single') ? gd.players[gd.humanIndex] : gd.players[0];
+  var isHandHuman = !handPlayer.isAI;
+
+  if (isHandHuman) {
+    hand.innerHTML = '';
+    for (var i = 0; i < handPlayer.cards.length; i++) {
+      var c = handPlayer.cards[i];
+      var cls = 'gd-card';
+      if (c.joker === 'big') cls += ' joker-big';
+      else if (c.joker === 'small') cls += ' joker-small';
+      else if (c.suit === '♥' || c.suit === '♦') cls += ' red';
+      else cls += ' black';
+      if (gd.selected.indexOf(i) >= 0) cls += ' selected';
+      hand.innerHTML += '<div class="' + cls + '" onclick="gdToggleCard(' + i + ')">' +
+        '<span class="card-rank">' + c.rank + '</span>' +
+        '<span class="card-suit">' + c.suit + '</span></div>';
+    }
+
+    var selectedCards = gd.selected.map(function(i){return handPlayer.cards[i];});
+    var validPlay = gdAnalyze(selectedCards);
+    var canPlay = validPlay && gdCanBeat(validPlay, gd.lastPlay);
+
+    var hasAnyPlay = false;
+    if (gd.lastPlay) {
+      for (var si = 0; si < handPlayer.cards.length; si++) {
+        var t = gdAnalyze([handPlayer.cards[si]]);
+        if (t && gdCanBeat(t, gd.lastPlay)) { hasAnyPlay = true; break; }
+      }
+      if (!hasAnyPlay) {
+        for (var si = 0; si < handPlayer.cards.length - 1; si++) {
+          if (gdCardVal(handPlayer.cards[si]) === gdCardVal(handPlayer.cards[si+1])) {
+            var t = gdAnalyze([handPlayer.cards[si], handPlayer.cards[si+1]]);
+            if (t && gdCanBeat(t, gd.lastPlay)) { hasAnyPlay = true; break; }
+          }
+        }
+      }
+    }
+
+    btnPlay.disabled = !(gd.selected.length > 0 && canPlay);
+    btnPass.disabled = !canPass;
+    btnHint.disabled = false;
+    if (gd.lastPlay && !hasAnyPlay && canPass && gd.selected.length === 0) {
+      btnPlay.disabled = true;
+      btnPass.style.border = '2px solid var(--error)';
+      btnPass.style.fontWeight = '700';
+    } else {
+      btnPass.style.border = 'none';
+      btnPass.style.fontWeight = '400';
+    }
+  } else {
+    hand.innerHTML = '';
+    for (var i = 0; i < handPlayer.cards.length; i++) {
+      hand.innerHTML += '<div class="gd-card face-down">🂠</div>';
+    }
+    btnPlay.disabled = true;
+    btnPass.disabled = true;
+    btnHint.disabled = true;
+  }
+
+  var debugInfo = document.getElementById('gd-debug');
+  if (debugInfo) {
+    var cur = gd.players[gd.current];
+    debugInfo.innerHTML = '当前:' + (cur?cur.name:'?') + ' passCnt:' + gd.passCount +
+      ' 牌型:' + (gd.lastPlay?(gd.lastPlay.type+' rank:'+gd.lastPlay.rank):'无') +
+      ' roundPlays:' + gd.roundPlays.length + ' prevRound:' + gd.prevRoundPlays.length + ' timer:' + (gd.aiTimer?'Y':'N');
+  }
+
+  var forceBtn = document.getElementById('gd-force-btn');
+  if (forceBtn) {
+    forceBtn.onclick = function() {
+      if (gd.phase === 'gameOver' || gd.phase === 'idle') return;
+      var cp = gd.players[gd.current];
+      if (cp.isAI) { try { gdAIAutoPlay(); } catch(e) {} }
+      else { if (cp.cards.length > 0) { gd.selected = [0]; gdPlayCards(); } }
+    };
+  }
+
+  var allPlaysDiv = document.getElementById('gd-all-plays-content');
+  if (allPlaysDiv) {
+    if (gd.roundPlays.length > 0) {
+      var allHtml = '';
+      for (var ri = 0; ri < gd.roundPlays.length; ri++) {
+        var rp = gd.roundPlays[ri];
+        var rpl = gd.players[rp.player];
+        allHtml += '<span style="color:' + (rpl.team === 1 ? '#8bc34a' : '#ffa726') + ';font-weight:600;margin-right:4px">' + (rpl?rpl.name:'?') + '</span>';
+        for (var ci = 0; ci < rp.cards.length; ci++) { allHtml += gdMakeCard(rp.cards[ci]); }
+        allHtml += '<span style="margin:0 6px;color:rgba(255,255,255,0.2)">│</span>';
+      }
+      allPlaysDiv.innerHTML = allHtml;
+    } else { allPlaysDiv.innerHTML = '等待出牌...'; }
+  }
+
+  var inlineDiv = document.getElementById('gd-all-plays-inline');
+  if (inlineDiv) {
+    if (gd.roundPlays.length > 0) {
+      var inlineHtml = '';
+      for (var ri = 0; ri < gd.roundPlays.length; ri++) {
+        var rp = gd.roundPlays[ri];
+        var rpl = gd.players[rp.player];
+        inlineHtml += '<span style="color:' + (rpl.team === 1 ? '#8bc34a' : '#ffa726') + ';font-size:10px;font-weight:600;margin:0 2px">' + (rpl?rpl.name:'?') + '</span>';
+        for (var ci = 0; ci < rp.cards.length; ci++) { inlineHtml += gdMakeCard(rp.cards[ci]); }
+      }
+      inlineDiv.innerHTML = inlineHtml;
+    } else if (gd.lastPlay) {
+      var lpl = gd.players[gd.lastPlay.player];
+      inlineDiv.innerHTML = '<span style="color:#ffd700;font-size:11px">🔼 上家' + (lpl?lpl.name:'') + ' 出了 ' + (GD_TYPE_LABEL[gd.lastPlay.type] || gd.lastPlay.type) + '</span>';
+    } else { inlineDiv.innerHTML = '<span style="color:rgba(255,255,255,0.3);font-size:11px">🃏 出牌区 - 选牌后点「出牌」</span>'; }
+  }
+
+  result.style.display = 'none';
+  var playsText = document.getElementById('gd-plays-text');
+  if (playsText) {
+    if (gd.roundPlays.length > 0) {
+      var txt = '🃏 本轮出牌: ';
+      for (var ri = 0; ri < gd.roundPlays.length; ri++) {
+        var rp = gd.roundPlays[ri];
+        var rpl = gd.players[rp.player];
+        txt += (rpl ? rpl.name : '?') + '(' + (GD_TYPE_LABEL[rp.type] || rp.type) + ') ';
+        for (var ci = 0; ci < rp.cards.length; ci++) { txt += rp.cards[ci].rank + rp.cards[ci].suit + ' '; }
+        txt += ' | ';
+      }
+      playsText.textContent = txt;
+    } else if (gd.lastPlay) {
+      var lpl = gd.players[gd.lastPlay.player];
+      playsText.textContent = '🔼 上家: ' + (lpl ? lpl.name : '') + '出了 ' + (GD_TYPE_LABEL[gd.lastPlay.type] || '') + ' → 选牌压上！';
+    } else { playsText.textContent = '🃏 等待出牌...'; }
+  }
+
+  result.style.display = 'none';
+}
+
+// ─── Background Music ───
+var _audioPlayer = null;
+var _musicOn = false;
+var _musicBtn = document.getElementById('musicToggleBtn');
+
+function toggleMusic() {
+  if (_musicOn) {
+    _musicOn = false;
+    if (_audioPlayer) { _audioPlayer.pause(); _audioPlayer.currentTime = 0; }
+    if (_musicBtn) { _musicBtn.textContent = '🎵'; _musicBtn.classList.add('off'); }
+  } else {
+    try {
+      if (!_audioPlayer) {
+        _audioPlayer = document.createElement('audio');
+        _audioPlayer.loop = true;
+        _audioPlayer.volume = 0.3;
+        // Use a reliable free background music URL
+        _audioPlayer.src = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+      }
+      _audioPlayer.play().then(function() {
+        _musicOn = true;
+        if (_musicBtn) { _musicBtn.textContent = '🔊'; _musicBtn.classList.remove('off'); }
+      }).catch(function(e) {
+        // Auto-play blocked, user needs to interact first
+        if (_musicBtn) _musicBtn.textContent = '🔇';
+      });
+    } catch(e) {
+      if (_musicBtn) _musicBtn.textContent = '❌';
+    }
+  }
+}
+
+// Auto-start on first tap (required by WeChat/ mobile browsers)
+document.addEventListener('click', function() {
+  if (!_audioPlayer && !_musicOn) {
+    toggleMusic();
+  }
+}, { once: true });
+
+window.addEventListener('load', function() {
+  connectWS();
+});
+</script>
+</body>
+</html>
