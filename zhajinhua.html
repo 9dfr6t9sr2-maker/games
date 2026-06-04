@@ -54,18 +54,9 @@ body {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   text-align: center; z-index: 2; pointer-events: none;
 }
-.pot-chip {
-  width: 72px; height: 72px; border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #f0d060, #c8a84e 40%, #8a6e20 70%, #5a4a10);
-  border: 3px solid #f0d060;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: bold; color: #1a1a1a;
-  box-shadow: 0 0 30px rgba(240,208,96,0.2), inset 0 -4px 8px rgba(0,0,0,0.3);
-  margin: 0 auto 4px;
-}
-.pot-label { color: #c8a84e; font-size: 11px; letter-spacing: 2px; }
-.pot-amount { color: #f0d060; font-size: 18px; font-weight: bold; }
-.pot-blind { color: #aaa; font-size: 10px; margin-top: 2px; }
+.pot-label { color: #c8a84e; font-size: 12px; letter-spacing: 2px; margin-bottom: 2px; }
+.pot-amount { color: #ffd700; font-size: 28px; font-weight: bold; text-shadow: 0 0 20px rgba(255,215,0,0.3); }
+.pot-blind { color: #aaa; font-size: 11px; margin-top: 2px; }
 /* AI spots */
 .player-spots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
 .ai-spot { position: absolute; display: flex; flex-direction: column; align-items: center; transition: all 0.3s; }
@@ -83,15 +74,22 @@ body {
   border-radius: 4px; padding: 1px 5px; font-size: 10px; color: #f0d060; display: none;
 }
 .ai-spot .cards-container { display: flex; gap: 3px; margin: 3px 0; }
-.ai-spot .cards-container .card { width: 32px; height: 44px; border-radius: 4px; display: flex; align-items: center; justify-content: center; position: relative; transition: transform 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
-.ai-spot .card-back { background: linear-gradient(135deg, #1a3a8a, #2d5db8); border: 1.5px solid #4a7ed4; }
-.ai-spot .card-back::after { content: '🂠'; font-size: 18px; }
-.ai-spot .card-front { background: #faf8f5; border: 1.5px solid #ddd; }
+.ai-spot .cards-container .card { width: 44px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; position: relative; transition: transform 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+.ai-spot .card-back { background: linear-gradient(135deg, #1a3a8a, #2d5db8); border: 2px solid #4a7ed4; }
+.ai-spot .card-back::after { content: '🂠'; font-size: 26px; }
+.ai-spot .card-front { background: #faf8f5; border: 2px solid #ddd; }
 .ai-spot .card-front.red { color: #e74c3c; }
 .ai-spot .card-front.black { color: #333; }
-.ai-spot .card-rank { font-size: 9px; position: absolute; top: 2px; left: 2px; }
-.ai-spot .card-suit-big { font-size: 13px; }
-.ai-spot .card-rank-bottom { font-size: 9px; position: absolute; bottom: 2px; right: 2px; transform: rotate(180deg); }
+.ai-spot .card-rank { font-size: 13px; position: absolute; top: 3px; left: 3px; }
+.ai-spot .card-suit-big { font-size: 18px; }
+.ai-spot .card-rank-bottom { font-size: 13px; position: absolute; bottom: 3px; right: 3px; transform: rotate(180deg); }
+/* Folded card style — dark overlay */
+.ai-spot .card-folded {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a) !important;
+  border: 1.5px solid #444 !important;
+  opacity: 0.5;
+}
+.ai-spot .card-folded::after { content: '✕'; font-size: 18px; color: #666; }
 
 .ai-action-text {
   font-size: 12px; font-weight: bold; opacity: 0;
@@ -121,7 +119,7 @@ body {
 
 .player-blind-badge { font-size: 11px; padding: 2px 10px; border-radius: 10px; font-weight: bold; }
 .player-blind-badge.blind { background: rgba(100,100,255,0.2); border: 1px solid rgba(100,100,255,0.4); color: #8888ff; }
-.player-blind-badge.looked { background: rgba(46,204,113,0.2); border: 1px solid rgba(46,204,113,0.4); color: #2ecc71; }
+.player-blind-badge.looked { background: rgba(255,68,68,0.2); border: 1px solid rgba(255,68,68,0.4); color: #ff4444; }
 
 .hand-type-badge {
   background: rgba(240,208,96,0.15); border: 1px solid rgba(240,208,96,0.3);
@@ -132,7 +130,7 @@ body {
 .player-cards-row { display: flex; align-items: center; gap: 12px; }
 .player-cards-row .cards-container { display: flex; gap: 6px; }
 .player-cards-row .card {
-  width: 64px; height: 90px; border-radius: 8px;
+  width: 72px; height: 100px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   position: relative; transition: transform 0.3s, box-shadow 0.3s;
   box-shadow: 0 3px 10px rgba(0,0,0,0.4);
@@ -143,14 +141,21 @@ body {
 .player-cards-row .cards-container .card:nth-child(3) { animation-delay: 0.15s; }
 @keyframes dealCard { from { opacity: 0; transform: translateY(-60px) rotate(-10deg); } to { opacity: 1; transform: translateY(0) rotate(0); } }
 .player-cards-row .card-back { background: linear-gradient(135deg, #1a3a8a, #2d5db8); border: 2px solid #4a7ed4; color: #fff; }
-.player-cards-row .card-back::after { content: '🂠'; font-size: 34px; }
+.player-cards-row .card-back::after { content: '🂠'; font-size: 38px; }
 .player-cards-row .card-front { background: #faf8f5; border: 2px solid #ddd; cursor: default; }
 .player-cards-row .card-front:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
 .player-cards-row .card-front.red { color: #e74c3c; }
 .player-cards-row .card-front.black { color: #333; }
-.player-cards-row .card-rank { font-size: 17px; font-weight: bold; position: absolute; top: 6px; left: 6px; }
-.player-cards-row .card-suit-big { font-size: 28px; }
-.player-cards-row .card-rank-bottom { font-size: 17px; font-weight: bold; position: absolute; bottom: 6px; right: 6px; transform: rotate(180deg); }
+.player-cards-row .card-rank { font-size: 20px; font-weight: bold; position: absolute; top: 6px; left: 6px; }
+.player-cards-row .card-suit-big { font-size: 32px; }
+.player-cards-row .card-rank-bottom { font-size: 20px; font-weight: bold; position: absolute; bottom: 6px; right: 6px; transform: rotate(180deg); }
+/* Player folded card style */
+.player-cards-row .card-folded {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a) !important;
+  border: 2px solid #444 !important;
+  opacity: 0.5;
+}
+.player-cards-row .card-folded::after { content: '✕'; font-size: 34px; color: #666; }
 
 .player-action-text { font-size: 14px; font-weight: bold; opacity: 0; transition: all 0.3s; }
 .player-action-text.show { opacity: 1; }
@@ -179,6 +184,83 @@ body {
 .btn-check { background: linear-gradient(135deg, #3498db, #2980b9); color: #fff; }
 @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(240,208,96,0.4); } 50% { box-shadow: 0 0 0 12px rgba(240,208,96,0); } }
 
+/* ── Coin animation ── */
+.coin-particle {
+  position: absolute; z-index: 100;
+  pointer-events: none; will-change: transform;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #fff4c2 0%, #ffd700 15%, #e6b800 35%, #c8950f 50%, #a67c00 70%, #7a5c00 90%, #5a4000 100%);
+  border: 2px solid #ffe566;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.5),
+    inset 0 -3px 4px rgba(0,0,0,0.25),
+    inset 0 2px 3px rgba(255,255,220,0.6),
+    0 0 8px rgba(255,215,0,0.2);
+  transform-style: preserve-3d;
+}
+.coin-particle::before {
+  content: '';
+  position: absolute;
+  top: 15%; left: 15%;
+  width: 70%; height: 70%;
+  border-radius: 50%;
+  border: 1.5px solid rgba(180,130,0,0.3);
+  background: radial-gradient(circle at 40% 35%, transparent 55%, rgba(180,130,0,0.15));
+}
+.coin-particle::after {
+  content: '¥';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 11px;
+  font-weight: bold;
+  color: #b8860b;
+  opacity: 0.5;
+  font-family: serif;
+}
+@keyframes coinFly {
+  0% { opacity: 1; transform: translate(0,0) scale(0.5) rotateY(0deg); box-shadow: 0 2px 6px rgba(0,0,0,0.5), 0 0 8px rgba(255,215,0,0.2); }
+  25% { opacity: 1; transform: translate(calc(var(--dx)*0.4),calc(var(--dy)*0.2)) scale(1) rotateY(180deg); box-shadow: 0 6px 16px rgba(0,0,0,0.4), 0 0 16px rgba(255,215,0,0.5); }
+  50% { opacity: 1; transform: translate(calc(var(--dx)*0.7),calc(var(--dy)*0.5)) scale(0.9) rotateY(360deg); box-shadow: 0 4px 10px rgba(0,0,0,0.3), 0 0 12px rgba(255,215,0,0.3); }
+  75% { opacity: 0.95; transform: translate(calc(var(--dx)*0.9),calc(var(--dy)*0.8)) scale(0.65) rotateY(540deg); }
+  100% { opacity: 0; transform: translate(var(--dx),var(--dy)) scale(0.35) rotateY(720deg); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+}
+/* ── Coin pile on table ── */
+.coin-pile {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  z-index: 3; pointer-events: none;
+  width: 140px; height: 140px;
+}
+.coin-pile .pile-coin {
+  position: absolute; width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #fff4c2 0%, #ffd700 15%, #e6b800 35%, #c8950f 50%, #a67c00 70%, #7a5c00 90%, #5a4000 100%);
+  border: 1.5px solid #ffe566;
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.4),
+    inset 0 -2px 3px rgba(0,0,0,0.2),
+    inset 0 1px 2px rgba(255,255,220,0.5);
+  transform-style: preserve-3d;
+}
+.coin-pile .pile-coin::before {
+  content: '';
+  position: absolute;
+  top: 18%; left: 18%;
+  width: 64%; height: 64%;
+  border-radius: 50%;
+  border: 1px solid rgba(180,130,0,0.25);
+}
+.coin-pile .pile-coin::after {
+  content: '¥';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 9px;
+  font-weight: bold;
+  color: #b8860b;
+  opacity: 0.4;
+  font-family: serif;
+}
+
 .raise-control { display: flex; align-items: center; gap: 3px; background: rgba(0,0,0,0.3); border-radius: 5px; padding: 2px 5px; }
 .raise-control input[type=range] { width: 80px; accent-color: #f39c12; }
 .raise-amount { font-size: 13px; font-weight: bold; color: #f39c12; min-width: 36px; text-align: center; }
@@ -197,6 +279,35 @@ body {
 .log-lose { color: #e74c3c; }
 .log-action { color: #aaa; }
 .log-info { color: #6bcb6b; }
+
+/* ── Compare (比牌) Overlay ── */
+.compare-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); display: none;
+  justify-content: center; align-items: center;
+  z-index: 60; backdrop-filter: blur(4px);
+}
+.compare-overlay.show { display: flex; }
+.compare-box {
+  background: linear-gradient(135deg, #1a2a2a, #0d1f1f);
+  border: 2px solid #c8a84e; border-radius: 16px;
+  padding: 20px 24px; text-align: center;
+  max-width: 400px; max-height: 70vh; overflow-y: auto;
+}
+.compare-box h3 { font-size: 18px; color: #f0d060; margin-bottom: 12px; }
+.compare-opponent {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(200,168,78,0.15);
+  border-radius: 10px; padding: 10px 14px; margin: 6px 0;
+  cursor: pointer; transition: all 0.2s;
+}
+.compare-opponent:hover { background: rgba(200,168,78,0.15); border-color: #f0d060; transform: translateX(4px); }
+.compare-opponent .co-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.compare-opponent .co-name { font-size: 14px; font-weight: bold; }
+.compare-opponent .co-chips { font-size: 12px; color: #aaa; }
+.compare-opponent .co-badge { font-size: 10px; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 8px; margin-left: auto; }
+.compare-close-btn { margin-top: 12px; padding: 6px 18px; background: rgba(255,255,255,0.1); border: 1px solid #555; border-radius: 8px; color: #aaa; cursor: pointer; font-size: 13px; }
+.compare-close-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
 
 /* ── Showdown Overlay ── */
 .showdown-overlay {
@@ -238,11 +349,11 @@ body {
   .ai-spot .avatar { width: 18px; height: 18px; font-size: 10px; }
   .ai-spot .ai-name { font-size: 9px; }
   .ai-spot .ai-chips { font-size: 8px; }
-  .ai-spot .cards-container .card { width: 26px; height: 36px; }
-  .ai-spot .card-back::after { font-size: 14px; }
-  .ai-spot .card-rank { font-size: 7px; top: 1px; left: 1px; }
-  .ai-spot .card-suit-big { font-size: 10px; }
-  .ai-spot .card-rank-bottom { font-size: 7px; bottom: 1px; right: 1px; }
+  .ai-spot .cards-container .card { width: 32px; height: 44px; }
+  .ai-spot .card-back::after { font-size: 18px; }
+  .ai-spot .card-rank { font-size: 9px; top: 1px; left: 1px; }
+  .ai-spot .card-suit-big { font-size: 13px; }
+  .ai-spot .card-rank-bottom { font-size: 9px; bottom: 1px; right: 1px; }
   .ai-action-text { font-size: 10px; }
   .player-bottom { padding: 5px 8px 8px; gap: 4px; }
   .player-cards-row .card { width: 44px; height: 62px; }
@@ -252,8 +363,7 @@ body {
   .player-cards-row .card-rank-bottom { font-size: 12px; bottom: 4px; right: 4px; }
   .controls button { padding: 5px 10px; font-size: 11px; }
   .raise-control input[type=range] { width: 56px; }
-  .pot-chip { width: 50px; height: 50px; font-size: 9px; }
-  .pot-amount { font-size: 13px; }
+  .pot-amount { font-size: 20px; }
   .game-log { width: 80px; max-height: 120px; font-size: 9px; right: 2px; }
   .showdown-box { padding: 12px 16px; max-width: 95vw; }
   .sd-hands-grid { gap: 3px; }
@@ -272,7 +382,7 @@ body {
     <div class="title">🃏 <span>炸</span>金花 · 极速闷牌</div>
     <div class="header-right">
       <div class="chip-info">
-        <span class="label">💎</span>
+        <span class="label">🪙</span>
         <span class="amount" id="balanceDisplay">10,000</span>
       </div>
       <div class="stat-box">
@@ -300,15 +410,15 @@ body {
     <div class="player-spots" id="playerSpots"></div>
 
     <div class="pot-display">
-      <div class="pot-chip">💰</div>
       <div class="pot-label">— 底 池 —</div>
       <div class="pot-amount" id="potDisplay">0</div>
       <div class="pot-blind" id="potBlind">闷底: 10</div>
     </div>
+    <div class="coin-pile" id="coinPile"></div>
 
-    <div class="game-log" id="gameLog"></div>
+    <!-- game-log removed -->
 
-    <div class="showdown-overlay" id="showdownOverlay">
+    <div class="showdown-overlay" id="showdownOverlay" onclick="closeShowdown(event)">
       <div class="showdown-box">
         <div class="sd-title" id="sdTitle">🎉 揭晓!</div>
         <div class="sd-winner" id="sdWinner"></div>
@@ -316,6 +426,15 @@ body {
         <div class="sd-hands-grid" id="sdHandsGrid"></div>
         <div class="sd-prize" id="sdPrize"></div>
         <div class="sd-small" style="font-size:11px;color:#666;margin-top:6px;" id="sdAutoMsg">⏳ 下一局自动开始...</div>
+      </div>
+    </div>
+
+    <!-- Compare (比牌) Dialog -->
+    <div class="compare-overlay" id="compareOverlay">
+      <div class="compare-box">
+        <h3>⚔️ 选择比牌对手</h3>
+        <div id="compareOpponentsList"></div>
+        <button class="compare-close-btn" onclick="closeCompareDialog()">✕ 取消</button>
       </div>
     </div>
   </div>
@@ -335,10 +454,8 @@ body {
 
     <div class="player-cards-row">
       <div class="cards-container" id="playerCards">
-        <div class="card card-back"></div>
-        <div class="card card-back"></div>
-        <div class="card card-back"></div>
       </div>
+      <div class="player-looked-badge" id="playerLookedBadge" style="display:none;color:#ff4444;font-size:13px;font-weight:bold;margin-left:8px;">👁️ 看牌</div>
     </div>
 
     <div class="player-action-text" id="playerActionText"></div>
@@ -378,8 +495,8 @@ const HAND_NAMES = {
 };
 const ANTE = 10;
 const MIN_RAISE = 10;
-const AI_DELAY_MIN = 150; // ms - much faster
-const AI_DELAY_MAX = 350;
+const AI_DELAY_MIN = 300; // ms - faster pace
+const AI_DELAY_MAX = 600;
 const AUTO_NEXT_DELAY = 1500; // ms before auto-starting next round
 
 // ═══════════════════════════════════════════
@@ -390,6 +507,8 @@ let G = {
   currentPlayerIdx:0, playerIndex:0, roundNum:0,
   aiCount:9, lastActionBy:-1, actionCount:0,
   maxActions:80, roundStarted:false, autoNextTimer:null,
+  roundCounter:0, // 每过一圈所有存活玩家+1，比牌后重置0
+  roundCounterChecked:false, // 防止同一圈多次计数
 };
 
 let stats = { rounds:0, wins:0, peakChips:10000 };
@@ -489,10 +608,11 @@ function initGame() {
   }
   G.playerIndex=0;
   buildAISpots();
+  document.getElementById('playerCards').innerHTML='';
   updateUI();
   addLog('info','🃏 炸金花 · 极速闷牌版');
   addLog('info',`👥 你 + ${G.aiCount} 个对手`);
-  setControls([{cls:'btn-start',text:'🀄️ 发牌',fn:'startNewRound()'}]);
+  setControls('<button class="btn-start" onclick="startNewRound()">🀄️ 发牌</button>');
 }
 
 function saveChips(){
@@ -539,6 +659,7 @@ function buildAISpots(){
         <div class="card card-back"></div>
         <div class="card card-back"></div>
       </div>
+      <div class="ai-looked-badge" id="aiLooked_${i}" style="display:none;color:#ff4444;font-size:9px;font-weight:bold;margin-top:1px;">👁️ 看牌</div>
       <div class="ai-action-text" id="aiAction_${i}"></div>
       <div class="ai-status" id="aiStatus_${i}"></div>
     `;
@@ -547,34 +668,31 @@ function buildAISpots(){
 }
 
 function getAIPosition(index, count){
-  // Multi-row layout for 9 players
-  if(count>=7){
-    // Two rows: top row (higher y) = far away, bottom row (lower y) = closer
-    const perRow=Math.ceil(count/2);
-    const row=Math.floor(index/perRow);
-    const col=index%perRow;
-    const rowCount=Math.ceil(count/2);
+  // Perimeter layout — keep center clear for pot display
+  // Distribute evenly with left/right symmetry
+  const base=Math.floor(count/3);
+  const rem=count-base*3;
+  let topN, leftN, rightN;
+  if(rem===0){topN=base;leftN=base;rightN=base;}
+  else if(rem===1){topN=base+1;leftN=base;rightN=base;}
+  else{topN=base;leftN=base+1;rightN=base+1;}
 
-    const spanX=row===0?65:70; // width % of table
-    const startX=(100-spanX)/2+5;
-    const stepX=row===0?(spanX-10)/(Math.max(1,rowCount-1)):(spanX-10)/(Math.max(1,rowCount-1));
-    const left=startX+col*stepX;
-
-    // Top row: higher up (farther), bottom row: lower (closer)
-    const top=row===0?8:60; // %
-    return {left:`${left}%`,top:`${top}%`};
+  if(index<topN){
+    // Top row — spread across, leave corners for sides
+    const span=86;
+    const step=span/Math.max(1,topN-1);
+    return {left:`${7+index*step}%`, top:'12%'};
+  } else if(index<topN+rightN){
+    // Right side — start below top row
+    const si=index-topN;
+    const step=56/Math.max(1,rightN);
+    return {left:'92%', top:`${34+si*step}%`};
+  } else {
+    // Left side — start below top row, mirrored from right side
+    const si=index-topN-rightN;
+    const step=56/Math.max(1,leftN);
+    return {left:'8%', top:`${34+si*step}%`};
   }
-
-  // 3-6 players: arc layout
-  const totalSpan=Math.min(180+count*10,240);
-  const startAngle=180+(360-totalSpan)/2;
-  const angleStep=count>1?totalSpan/(count-1):0;
-  const angle=startAngle+index*angleStep;
-  const rad=angle*Math.PI/180;
-  const rx=38, ry=28, cx=50, cy=44;
-  const left=cx+rx*Math.cos(rad);
-  const top=cy+ry*Math.sin(rad);
-  return {left:`${left}%`,top:`${top}%`};
 }
 
 // ═══════════════════════════════════════════
@@ -583,10 +701,11 @@ function getAIPosition(index, count){
 function startNewRound(){
   cancelAutoNext();
   document.getElementById('showdownOverlay').classList.remove('show');
+  document.getElementById('compareOverlay').classList.remove('show');
 
   const p=G.players[G.playerIndex];
   if(p.chips<ANTE){
-    if(confirm('💸 筹码不足! 是否重新充值 10,000 筹码?')){p.chips=10000;saveChips();updateUI();}
+    if(confirm('💸 金币不足! 是否重新充值 10,000 金币?')){p.chips=10000;saveChips();updateUI();}
     return;
   }
 
@@ -599,30 +718,75 @@ function startNewRound(){
   }
   G.pot=0; G.blindLevel=0; G.actionCount=0; G.lastActionBy=-1;
   G.roundNum++;
+  G.roundCounter=0;
+  G.roundCounterChecked=false;
+
+  clearCoinPile();
 
   G.deck=shuffle(createDeck());
 
-  // Deal
-  for(let i=0;i<3;i++) for(const pl of G.players) pl.hand.push(G.deck.pop());
-
-  // Pre-evaluate all hands
-  for(const pl of G.players) if(pl.hand.length===3) pl._eval=evaluateHand(pl.hand);
-
-  // Ante
-  for(const pl of G.players){
-    if(pl.chips<ANTE){pl.folded=true;pl.alive=false;continue;}
-    const a=Math.min(ANTE,pl.chips);
-    pl.chips-=a;pl.currentBet=a;pl.totalBet=a;G.pot+=a;
-    if(pl.chips===0)pl.allIn=true;
+  // Deal: round-robin, one card at a time to all players with fly animation
+  // First clear all card displays
+  for(let i=0;i<G.aiCount;i++){
+    const c=document.getElementById(`aiCards_${i}`);
+    if(c) c.innerHTML='';
   }
-  G.blindLevel=ANTE;
-  G.currentPlayerIdx=G.playerIndex;
-
-  updateUI();
-  addLog('action',`第 ${G.roundNum} 局开始  👥${G.players.length}人  底注${ANTE}`);
-
-  // Check if game is over before it starts
-  checkRoundEnd();
+  document.getElementById('playerCards').innerHTML='';
+  const totalCards=G.players.length*3;
+  let dealtCard=0;
+  function dealAllPlayers(){
+    if(dealtCard>=totalCards){
+      // All cards dealt — proceed
+      for(const pl of G.players) if(pl.hand.length===3) pl._eval=evaluateHand(pl.hand);
+      for(const pl of G.players){
+        if(pl.chips<ANTE){pl.folded=true;pl.alive=false;continue;}
+        const a=Math.min(ANTE,pl.chips);
+        pl.chips-=a;pl.currentBet=a;pl.totalBet=a;G.pot+=a;
+        if(pl.chips===0)pl.allIn=true;
+      }
+      G.blindLevel=ANTE; G.currentPlayerIdx=G.playerIndex;
+      updateUI();
+      addLog('action',`第 ${G.roundNum} 局开始  👥${G.players.length}人  底注${ANTE}`);
+      G.currentPlayerIdx=G.players.length-1;
+      advanceTurn();
+      return;
+    }
+    const pi=dealtCard%G.players.length;
+    if(pi===0){
+      // Human — push card to hand
+      G.players[0].hand.push(G.deck.pop());
+    } else {
+      // AI — push card to hand
+      G.players[pi].hand.push(G.deck.pop());
+    }
+    playCardSound();
+    // Fly card visual
+    const fly=document.createElement('div');
+    fly.className='card card-back flying-card';
+    const fromScale=0.2;
+    fly.style.cssText=`position:absolute;z-index:200;width:44px;height:60px;left:50%;top:42%;transform:translate(-50%,-50%) scale(${fromScale});opacity:0;transition:all 0.2s cubic-bezier(0.15,0.7,0.3,1);border-radius:6px;`;
+    document.getElementById('tableArea').appendChild(fly);
+    requestAnimationFrame(()=>{
+      let tx=50, ty=90; // default: human bottom
+      if(pi>0){
+        const spot=document.getElementById(`aiSpot_${pi-1}`);
+        if(spot){
+          const sr=spot.getBoundingClientRect();
+          const tr=document.getElementById('tableArea').getBoundingClientRect();
+          tx=((sr.left-tr.left+sr.width/2)/tr.width)*100;
+          ty=((sr.top-tr.top+sr.height/2)/tr.height)*100;
+        }
+      }
+      fly.style.cssText+=`left:${tx}%;top:${ty}%;opacity:1;transform:translate(-50%,-50%) scale(1) rotate(${(Math.random()-0.5)*15}deg);`;
+    });
+    setTimeout(()=>{
+      fly.remove();
+      updateUI();
+      dealtCard++;
+      setTimeout(dealAllPlayers,80+Math.random()*80);
+    },240);
+  }
+  setTimeout(dealAllPlayers,150);
 }
 
 function getAlivePlayers(){
@@ -637,6 +801,10 @@ function getActivePlayers(){
 function allDoneBetting(){
   const alive=getAlivePlayers();
   if(alive.length<=1) return true;
+  // Must have at least 10 complete rounds (一圈) of betting, OR only 1 alive
+  if(G.roundCounter < 10) return false;
+  // Must have at least one full round of action (everyone got a turn)
+  if(G.actionCount < alive.length) return false;
   for(const pl of alive){
     if(pl.allIn) continue;
     const need=pl.hasLooked?G.blindLevel*2:G.blindLevel;
@@ -684,6 +852,17 @@ function advanceTurn(){
   }
   G.currentPlayerIdx=next;
 
+  // Track roundCounter: when we pass through the human player, that's one full 一圈
+  if(next === G.playerIndex && !G.roundCounterChecked && alive.length > 1) {
+    G.roundCounter++;
+    G.roundCounterChecked=true;
+    addLog('info',`🔄 第 ${G.roundCounter} 圈 (≥10圈自动开牌)`);
+  }
+  // Reset the check flag if we're moving away from human player
+  if(next !== G.playerIndex) {
+    G.roundCounterChecked=false;
+  }
+
   if(G.players[next].isHuman) showPlayerControls();
   else setTimeout(()=>aiAction(next), AI_DELAY_MIN+Math.random()*(AI_DELAY_MAX-AI_DELAY_MIN));
 }
@@ -705,33 +884,85 @@ function aiAction(idx){
   const pot=G.pot;
   const rand=Math.random();
 
+  // AI can initiate compare (比牌) if has looked and has strong hand
+  const aliveOpponents=getAlivePlayers().filter(p=>!p.isHuman&&p.idx!==idx);
+  if(pl.hasLooked && aliveOpponents.length>0 && G.roundCounter>=3){
+    // AI initiates compare with strong hands
+    let shouldCompare=false;
+    if(handType>=HAND_TYPES.BAO_ZI&&rand<0.7) shouldCompare=true;
+    else if(handType>=HAND_TYPES.TONG_HUA_SHUN&&rand<0.5) shouldCompare=true;
+    else if(handType>=HAND_TYPES.JIN_HUA&&rand<0.25) shouldCompare=true;
+
+    if(shouldCompare){
+      // Pick a random alive opponent to compare with
+      const target=aliveOpponents[Math.floor(Math.random()*aliveOpponents.length)];
+      const targetHand=evaluateHand(target.hand);
+      const result=compareHands(hand,targetHand);
+
+      if(result>0){
+        // AI wins
+        target.folded=true;target.alive=false;
+        const hName=getHandDisplayName(hand);
+        const tName=getHandDisplayName(targetHand);
+        addLog('win',`⚔️ ${pl.name} 比牌胜 ${target.name} (${hName} > ${tName})`);
+        showAction(idx,`⚔️ 比牌胜 ${target.name}`,'raise');
+        G.roundCounter=0;
+        addLog('info','🔄 比牌触发，回合计数器归零');
+        updateUI();
+        checkRoundEnd();
+        return;
+      } else if(result<0){
+        // AI loses
+        pl.folded=true;pl.alive=false;
+        const hName=getHandDisplayName(hand);
+        const tName=getHandDisplayName(targetHand);
+        addLog('lose',`⚔️ ${target.name} 比牌胜 ${pl.name} (${tName} > ${hName})`);
+        showAction(idx,`⚔️ 比牌负`,'fold');
+        G.roundCounter=0;
+        addLog('info','🔄 比牌触发，回合计数器归零');
+        updateUI();
+        checkRoundEnd();
+        return;
+      } else {
+        // Tie — both fold
+        pl.folded=true;pl.alive=false;
+        target.folded=true;target.alive=false;
+        addLog('info',`🤝 ${pl.name} 与 ${target.name} 比牌平局，双双出局`);
+        showAction(idx,`⚔️ 比牌平`,'fold');
+        G.roundCounter=0;
+        updateUI();
+        checkRoundEnd();
+        return;
+      }
+    }
+  }
+
   let action='',amount=0;
 
-  // AI strategy based on hand strength
+  // AI strategy based on hand strength — no check, always call/raise/fold
   if(handType>=HAND_TYPES.BAO_ZI){
     if(rand<0.75){action='raise';amount=G.blindLevel+Math.round(pot*(0.3+rand*0.5)/10)*10;}
-    else if(rand<0.95){action=effectiveToCall>0?'call':'check';}
+    else if(rand<0.95){action='call';}
     else action='fold';
   } else if(handType>=HAND_TYPES.TONG_HUA_SHUN){
     if(rand<0.5){action='raise';amount=G.blindLevel+Math.round(pot*(0.2+rand*0.3)/10)*10;}
-    else if(rand<0.9){action=effectiveToCall>0?'call':'check';}
+    else if(rand<0.9){action='call';}
     else action='fold';
   } else if(handType>=HAND_TYPES.JIN_HUA){
     if(rand<0.35){action='raise';amount=G.blindLevel+Math.round(pot*(0.15+rand*0.2)/10)*10;}
-    else if(rand<0.85){action=effectiveToCall>0?'call':'check';}
+    else if(rand<0.85){action='call';}
     else action='fold';
   } else if(handType>=HAND_TYPES.SHUN_ZI){
     if(rand<0.2){action='raise';amount=G.blindLevel+10;}
-    else if(rand<0.8){action=effectiveToCall>0?'call':'check';}
+    else if(rand<0.8){action='call';}
     else action='fold';
   } else if(handType>=HAND_TYPES.DUI_ZI){
     if(rand<0.15){action='raise';amount=G.blindLevel+10;}
-    else if(rand<0.75){action=effectiveToCall>0?'call':'check';}
+    else if(rand<0.75){action='call';}
     else action='fold';
   } else { // 散牌
     if(rand<0.05&&!pl.hasLooked){action='raise';amount=G.blindLevel+10;}
-    else if(rand<0.35&&effectiveToCall<=ANTE*2){action=effectiveToCall>0?'call':'check';}
-    else if(rand<0.5&&!pl.hasLooked&&G.blindLevel<=ANTE*3){action='check';}
+    else if(rand<0.35&&effectiveToCall<=ANTE*2){action='call';}
     else action='fold';
   }
 
@@ -761,8 +992,12 @@ function executeAction(idx,action,amount=0){
     case 'call': {
       const need=pl.hasLooked?G.blindLevel*2:G.blindLevel;
       const callAmt=Math.min(need-pl.currentBet,pl.chips);
-      if(callAmt<=0){showAction(idx,'✅ 过牌','check');addLog('action',`${pl.name} 过牌`);break;}
+      if(callAmt<=0){
+        // Zero amount call — no action text, just advance
+        break;
+      }
       pl.chips-=callAmt;pl.currentBet+=callAmt;pl.totalBet+=callAmt;G.pot+=callAmt;
+      spawnCoins(callAmt,idx);
       if(pl.chips===0)pl.allIn=true;
       const label=pl.hasLooked?'跟注':'闷跟';
       showAction(idx,`${label}${callAmt}`,'call');
@@ -773,11 +1008,12 @@ function executeAction(idx,action,amount=0){
       const target=Math.max(amount||(G.blindLevel+MIN_RAISE),G.blindLevel+MIN_RAISE);
       const totalNeeded=pl.hasLooked?target*2:target;
       const pay=Math.min(totalNeeded-pl.currentBet,pl.chips);
-      if(pay<=0){showAction(idx,'✅ 过牌','check');addLog('action',`${pl.name} 过牌`);break;}
+      if(pay<=0){break;}
       // If paying all chips → all-in
       if(pay>=pl.chips){
         pl.allIn=true;const allAmt=pl.chips;
         pl.chips=0;pl.currentBet+=allAmt;pl.totalBet+=allAmt;G.pot+=allAmt;
+        spawnCoins(allAmt,idx);
         const eff=pl.hasLooked?Math.floor(pl.currentBet/2):pl.currentBet;
         if(eff>G.blindLevel)G.blindLevel=eff;
         showAction(idx,`🃏 ALL-IN ${allAmt}!`,'raise');
@@ -787,6 +1023,7 @@ function executeAction(idx,action,amount=0){
         return;
       }
       pl.chips-=pay;pl.currentBet+=pay;pl.totalBet+=pay;G.pot+=pay;
+      spawnCoins(pay,idx);
       if(pl.chips===0)pl.allIn=true;
       G.blindLevel=target;
       const label=pl.hasLooked?'加注':'闷加';
@@ -798,6 +1035,7 @@ function executeAction(idx,action,amount=0){
       const allAmt=pl.chips;
       if(allAmt<=0){checkRoundEnd();return;}
       pl.chips=0;pl.currentBet+=allAmt;pl.totalBet+=allAmt;G.pot+=allAmt;pl.allIn=true;
+      spawnCoins(allAmt,idx);
       const eff=pl.hasLooked?Math.floor(pl.currentBet/2):pl.currentBet;
       if(eff>G.blindLevel)G.blindLevel=eff;
       showAction(idx,`🃏 ALL-IN ${allAmt}!`,'raise');
@@ -827,7 +1065,6 @@ function showPlayerControls(){
     // 闷牌
     if(canCheck){
       setControls(`
-        <button class="btn-check" onclick="playerCheck()">✅ 过牌</button>
         <div class="raise-control">
           <input type="range" id="rs" min="${G.blindLevel+MIN_RAISE}" max="${Math.min(G.blindLevel*4,maxBet)}" step="10" value="${G.blindLevel+MIN_RAISE}" oninput="urd()">
           <span class="raise-amount" id="rd">${G.blindLevel+MIN_RAISE}</span>
@@ -836,6 +1073,7 @@ function showPlayerControls(){
         <button class="btn-look" onclick="pLook()">👁️ 看牌</button>
         <button class="btn-allin" onclick="playerAction('allin')">🃏 ALL(${pl.chips})</button>
         <button class="btn-fold" onclick="playerAction('fold')">🏳️ 弃牌</button>
+        <button class="btn-call" style="background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;" onclick="pLookThenCompare()">⚔️ 比牌</button>
       `);
     } else {
       setControls(`
@@ -848,13 +1086,13 @@ function showPlayerControls(){
         <button class="btn-look" onclick="pLook()">👁️ 看牌</button>
         <button class="btn-allin" onclick="playerAction('allin')">🃏 ALL(${pl.chips})</button>
         <button class="btn-fold" onclick="playerAction('fold')">🏳️ 弃牌</button>
+        <button class="btn-call" style="background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;" onclick="pLookThenCompare()">⚔️ 比牌</button>
       `);
     }
   } else {
     // 看牌
     if(canCheck){
       setControls(`
-        <button class="btn-check" onclick="playerCheck()">✅ 过牌</button>
         <div class="raise-control">
           <input type="range" id="rs" min="${G.blindLevel+MIN_RAISE}" max="${Math.min(G.blindLevel*4,Math.floor(pl.chips/2)+G.blindLevel)}" step="10" value="${G.blindLevel+MIN_RAISE}" oninput="urd()">
           <span class="raise-amount" id="rd">${G.blindLevel+MIN_RAISE}</span>
@@ -862,6 +1100,7 @@ function showPlayerControls(){
         <button class="btn-raise" onclick="pR2()">⬆️ 加注</button>
         <button class="btn-allin" onclick="playerAction('allin')">🃏 ALL(${pl.chips})</button>
         <button class="btn-fold" onclick="playerAction('fold')">🏳️ 弃牌</button>
+        <button class="btn-call" style="background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;" onclick="openCompareDialog()">⚔️ 比牌</button>
       `);
     } else {
       setControls(`
@@ -873,9 +1112,20 @@ function showPlayerControls(){
         <button class="btn-raise" onclick="pR2()">⬆️ 加注</button>
         <button class="btn-allin" onclick="playerAction('allin')">🃏 ALL(${pl.chips})</button>
         <button class="btn-fold" onclick="playerAction('fold')">🏳️ 弃牌</button>
+        <button class="btn-call" style="background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;" onclick="openCompareDialog()">⚔️ 比牌</button>
       `);
     }
   }
+}
+
+function pLookThenCompare(){
+  const pl=G.players[G.playerIndex];
+  if(!pl.hasLooked){
+    pl.hasLooked=true;
+    addLog('action','👁️ 比牌前先看牌');
+    updateUI();
+  }
+  openCompareDialog();
 }
 
 function setControls(html){document.getElementById('controls').innerHTML=html;}
@@ -911,6 +1161,96 @@ function playerAction(action,amount=0){
   if(pl.folded||pl.allIn){return;}
   setControls('<button disabled style="padding:8px 28px;background:rgba(255,255,255,0.1);border-radius:7px;color:#999;border:1px solid #555">⏳ 等待...</button>');
   executeAction(G.playerIndex,action,amount);
+}
+
+// ═══════════════════════════════════════════
+// COMPARE (比牌) — 挑战对手
+// ═══════════════════════════════════════════
+function openCompareDialog(){
+  const pl=G.players[G.playerIndex];
+  // Must have looked at own cards
+  if(!pl.hasLooked){
+    pl.hasLooked=true;
+    addLog('action','👁️ 比牌前先看牌');
+    updateUI();
+  }
+
+  const alive=getAlivePlayers();
+  const opponents=alive.filter(p=>!p.isHuman);
+  if(opponents.length===0){
+    addLog('info','⚔️ 没有可以比牌的对手');
+    return;
+  }
+
+  const list=document.getElementById('compareOpponentsList');
+  list.innerHTML='';
+  for(const op of opponents){
+    const item=document.createElement('div');
+    item.className='compare-opponent';
+    item.innerHTML=`
+      <div class="co-avatar" style="background:${op.color||'#888'}">${op.emoji}</div>
+      <div>
+        <div class="co-name" style="color:${op.color||'#fff'}">${op.name}</div>
+        <div class="co-chips">💰 ${op.chips.toLocaleString()}</div>
+      </div>
+      <div class="co-badge">${op.hasLooked?'👁️':'🔮'}</div>
+    `;
+    item.onclick=()=>executeCompare(op);
+    list.appendChild(item);
+  }
+  document.getElementById('compareOverlay').classList.add('show');
+}
+
+function closeCompareDialog(){
+  document.getElementById('compareOverlay').classList.remove('show');
+}
+
+function executeCompare(opponent){
+  closeCompareDialog();
+  const me=G.players[G.playerIndex];
+  if(me.folded||opponent.folded) return;
+
+  // Make sure both hands are evaluated
+  me._eval=evaluateHand(me.hand);
+  opponent._eval=evaluateHand(opponent.hand);
+
+  const result=compareHands(me._eval,opponent._eval);
+  const myHandName=getHandDisplayName(me._eval);
+  const opHandName=getHandDisplayName(opponent._eval);
+
+  if(result>0){
+    // 我赢了
+    opponent.folded=true;
+    opponent.alive=false;
+    addLog('win',`⚔️ 我 比牌胜 ${opponent.name} (${myHandName} > ${opHandName})`);
+    updateUI();
+    // Reset round counter on successful compare
+    G.roundCounter=0;
+    addLog('info','🔄 比牌触发，回合计数器归零');
+    checkRoundEnd();
+  } else if(result<0){
+    // 我输了
+    me.folded=true;
+    me.alive=false;
+    addLog('lose',`⚔️ ${opponent.name} 比牌胜 我 (${opHandName} > ${myHandName})`);
+    updateUI();
+    setControls('<button class="btn-start" onclick="startNewRound()">🀄️ 发牌</button>');
+    // Reset round counter
+    G.roundCounter=0;
+    addLog('info','🔄 比牌触发，回合计数器归零');
+    checkRoundEnd();
+  } else {
+    // 平局 — 两个都弃牌
+    me.folded=true;
+    me.alive=false;
+    opponent.folded=true;
+    opponent.alive=false;
+    addLog('info',`🤝 平局! 你和${opponent.name}同时弃牌`);
+    G.roundCounter=0;
+    updateUI();
+    setControls('<button class="btn-start" onclick="startNewRound()">🀄️ 发牌</button>');
+    checkRoundEnd();
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -972,22 +1312,29 @@ function finishRound(){
 }
 
 // ═══════════════════════════════════════════
-// AUTO-NEXT ROUND
+// AUTO-NEXT ROUND (removed — wait for player click)
 // ═══════════════════════════════════════════
 let _autoTimer=null;
 
 function scheduleAutoNext(){
   cancelAutoNext();
-  document.getElementById('sdAutoMsg').textContent=`⏳ ${(AUTO_NEXT_DELAY/1000).toFixed(0)}秒后自动下一局...`;
-  _autoTimer=setTimeout(()=>{
-    if(G.phase==='showdown') startNewRound();
-  },AUTO_NEXT_DELAY);
+  // Instead of auto-starting, show a button for player to click
+  document.getElementById('sdAutoMsg').textContent='👇 点下方按钮开始下一局';
+  setControls('<button class="btn-start" onclick="startNewRound()">🀄️ 开始下一把</button>');
 }
 
 function cancelAutoNext(){
   if(_autoTimer){clearTimeout(_autoTimer);_autoTimer=null;}
   const el=document.getElementById('sdAutoMsg');
   if(el)el.textContent='';
+}
+
+// Close showdown overlay when clicking outside the box (blank area)
+// Cards remain revealed on table so player can see all hands
+function closeShowdown(evt){
+  if(evt.target.id==='showdownOverlay'){
+    document.getElementById('showdownOverlay').classList.remove('show');
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -1021,7 +1368,7 @@ function showSDResult(winner,handDesc,amount,players){
   document.getElementById('sdTitle').textContent=winner.isHuman?'🎉 你赢了!':'😈 对手赢了';
   document.getElementById('sdWinner').textContent=`${winner.emoji} ${winner.name} 获胜!`;
   document.getElementById('sdHand').textContent=handDesc;
-  document.getElementById('sdPrize').textContent=`💰 +${amount} 筹码`;
+  document.getElementById('sdPrize').textContent=`💰 +${amount} 金币`;
   document.getElementById('sdPrize').style.color=winner.isHuman?'#2ecc71':'#e74c3c';
   buildSDHandsGrid(players,winner);
   overlay.classList.add('show');
@@ -1086,27 +1433,60 @@ function updateUI(){
   if(p.hasLooked){badge.textContent='👁️ 已看牌';badge.className='player-blind-badge looked';}
   else{badge.textContent='🔮 闷牌中';badge.className='player-blind-badge blind';}
 
-  // Player cards
+  // Player 看牌 红字 badge — always visible when looked
+  const plb=document.getElementById('playerLookedBadge');
+  if(plb){
+    if(p.hasLooked && p.hand && p.hand.length===3){
+      plb.style.display='inline-block';
+    } else {
+      plb.style.display='none';
+    }
+  }
+
+  // Player cards — only update HTML when state actually changes to avoid DOM recreation/flicker
   const pc=document.getElementById('playerCards');
-  if(G.phase==='showdown'){
-    // Already handled in revealAllHands
-  } else if(G.phase==='betting'&&p.hand&&p.hand.length===3){
+  if(p.folded){
+    // Show folded (dark) cards for player
+    const firstChild=pc.firstElementChild;
+    if(!firstChild||!firstChild.classList.contains('card-folded')){
+      pc.innerHTML='<div class="card card-folded"></div><div class="card card-folded"></div><div class="card card-folded"></div>';
+    }
+    document.getElementById('handTypeBadge').style.display='none';
+  } else if(G.phase==='betting'&&p.hand&&p.hand.length>0){
     if(p.hasLooked){
-      pc.innerHTML=p.hand.map(c=>cardFrontHTML(c)).join('');
+      // Only re-render if cards are not already shown
+      const firstChild=pc.firstElementChild;
+      if(!firstChild||!firstChild.classList.contains('card-front')){
+        pc.innerHTML=p.hand.map(c=>cardFrontHTML(c)).join('');
+      }
       const ev=evaluateHand(p.hand);
       p._eval=ev;
       const hb=document.getElementById('handTypeBadge');
       hb.textContent=getHandDisplayName(ev);
       hb.style.display='inline-block';
     } else {
-      pc.innerHTML='<div class="card card-back"></div><div class="card card-back"></div><div class="card card-back"></div>';
+      // Show backs — number matches current hand size
+      const firstChild=pc.firstElementChild;
+      const expectedLen=p.hand.length;
+      if(!firstChild||firstChild.classList.contains('card-front')||pc.children.length!==expectedLen){
+        let html='';
+        for(let j=0;j<expectedLen;j++) html+='<div class="card card-back"></div>';
+        pc.innerHTML=html;
+      }
       document.getElementById('handTypeBadge').style.display='none';
     }
-  } else {
-    pc.innerHTML='<div class="card card-back"></div><div class="card card-back"></div><div class="card card-back"></div>';
+  } else if(G.phase!=='showdown'){
+    // Idle phase — show card backs
+    const firstChild=pc.firstElementChild;
+    if(!firstChild||firstChild.classList.contains('card-front')){
+      const cnt=p.hand&&p.hand.length>0?p.hand.length:3;
+      let html='';
+      for(let j=0;j<cnt;j++) html+='<div class="card card-back"></div>';
+      pc.innerHTML=html;
+    }
   }
 
-  // AI players
+  // AI players — update text content only, no card re-rendering here
   for(let i=0;i<G.aiCount;i++){
     const ai=pl[i+1];if(!ai)continue;
     const nameEl=document.getElementById(`aiName_${i}`);
@@ -1123,6 +1503,41 @@ function updateUI(){
       else if(ai.hasLooked)st.textContent='👁️';
       else st.textContent=ai.chips>0?'🔮':'💸';
     }
+
+    // Show/hide red 看牌 badge on card backs
+    const lb=document.getElementById(`aiLooked_${i}`);
+    if(lb){
+      if(ai.hasLooked && !ai.folded && !ai.allIn && ai.hand && ai.hand.length===3){
+        lb.style.display='block';
+      } else {
+        lb.style.display='none';
+      }
+    }
+
+    // Reset AI cards to back during dealing or betting
+    if((G.phase==='betting'||G.phase==='idle')&&ai.hand&&ai.hand.length>0){
+      const container=document.getElementById(`aiCards_${i}`);
+      if(container){
+        const firstCard=container.firstElementChild;
+        if(ai.folded){
+          if(!firstCard||!firstCard.classList.contains('card-folded')){
+            container.innerHTML='<div class="card card-folded"></div><div class="card card-folded"></div><div class="card card-folded"></div>';
+          }
+        } else {
+          // Show card backs matching current hand size
+          const expectedLen=ai.hand.length;
+          if(!firstCard||firstCard.classList.contains('card-front')||firstCard.classList.contains('card-folded')||container.children.length!==expectedLen){
+            let html='';
+            for(let j=0;j<expectedLen;j++) html+='<div class="card card-back"></div>';
+            container.innerHTML=html;
+          }
+        }
+      }
+    } else if(G.phase==='betting'&&ai.hand&&ai.hand.length===0){
+      // Empty during dealing
+      const container=document.getElementById(`aiCards_${i}`);
+      if(container) container.innerHTML='';
+    }
   }
 
   // Stats
@@ -1132,8 +1547,137 @@ function updateUI(){
   document.getElementById('winrateDisplay').textContent=wr+'%';
 }
 
+// Card dealing sound — 刷刷刷 (rapid card flick)
+function playCardSound(){
+  try{
+    if(!_coinAudioCtx) _coinAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const ctx=_coinAudioCtx;
+    const t=ctx.currentTime;
+    // Rapid shua-shua-shua: 3 quick bursts
+    for(let b=0;b<3;b++){
+      const st=t+b*0.04;
+      const dur=0.025+Math.random()*0.02;
+      const sr=ctx.sampleRate;
+      const len=Math.floor(sr*dur);
+      const buf=ctx.createBuffer(1,len,sr);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<len;i++){
+        const env=(1-i/len);
+        d[i]=(Math.random()*2-1)*env*0.7+Math.sin((2500+b*500)*Math.PI*2*i/sr)*env*0.3;
+      }
+      const src=ctx.createBufferSource();
+      src.buffer=buf;
+      const bp=ctx.createBiquadFilter();
+      bp.type='bandpass';
+      bp.frequency.value=2500+b*500+Math.random()*1000;
+      bp.Q.value=1.5;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0.12-b*0.02,t+st);
+      g.gain.exponentialRampToValueAtTime(0.001,t+st+dur);
+      src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+      src.start(t+st); src.stop(t+st+dur+0.01);
+    }
+  } catch(e){}
+}
+
+// Coin sound effect — 叮铃铃铃 (ringing bell)
+let _coinAudioCtx=null;
+function playCoinSound(amount){
+  try{
+    if(!_coinAudioCtx) _coinAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const ctx=_coinAudioCtx;
+    const t=ctx.currentTime;
+    // --- Main bell tone with vibrato ---
+    const osc1=ctx.createOscillator();
+    const g1=ctx.createGain();
+    osc1.type='sine';
+    // Base frequency with slight vibrato
+    osc1.frequency.setValueAtTime(1200,t);
+    osc1.frequency.linearRampToValueAtTime(1180,t+0.05);
+    osc1.frequency.linearRampToValueAtTime(1220,t+0.15);
+    osc1.frequency.linearRampToValueAtTime(1170,t+0.3);
+    osc1.frequency.linearRampToValueAtTime(1210,t+0.5);
+    g1.gain.setValueAtTime(0.35,t);
+    g1.gain.exponentialRampToValueAtTime(0.001,t+0.8);
+    osc1.connect(g1); g1.connect(ctx.destination);
+    osc1.start(t); osc1.stop(t+0.85);
+    // --- Second harmonic for richness ---
+    const osc2=ctx.createOscillator();
+    const g2=ctx.createGain();
+    osc2.type='sine';
+    osc2.frequency.setValueAtTime(1800,t);
+    osc2.frequency.linearRampToValueAtTime(1780,t+0.1);
+    osc2.frequency.linearRampToValueAtTime(1820,t+0.25);
+    g2.gain.setValueAtTime(0.15,t);
+    g2.gain.exponentialRampToValueAtTime(0.001,t+0.6);
+    osc2.connect(g2); g2.connect(ctx.destination);
+    osc2.start(t); osc2.stop(t+0.65);
+    // --- Third harmonic (higher sparkle) ---
+    const osc3=ctx.createOscillator();
+    const g3=ctx.createGain();
+    osc3.type='sine';
+    osc3.frequency.value=2400;
+    g3.gain.setValueAtTime(0.06,t+0.08);
+    g3.gain.exponentialRampToValueAtTime(0.001,t+0.45);
+    osc3.connect(g3); g3.connect(ctx.destination);
+    osc3.start(t+0.08); osc3.stop(t+0.5);
+  } catch(e){ /* Audio not available */ }
+}
+
+// Coin animation — coins fly to center and stay on table
+function spawnCoins(amount,playerIdx){
+  if(amount<=0) return;
+  // Play coin clink sound
+  playCoinSound(amount);
+  const table=document.getElementById('tableArea');
+  if(!table) return;
+  const count=Math.min(Math.max(1,Math.floor(amount/10)),40);
+  const pile=document.getElementById('coinPile');
+  const rect=table.getBoundingClientRect();
+  let sx=rect.width/2, sy=rect.height-30;
+  if(playerIdx!==0){
+    const spot=document.getElementById(`aiSpot_${playerIdx-1}`);
+    if(spot){
+      const sr=spot.getBoundingClientRect();
+      sx=sr.left-rect.left+sr.width/2;
+      sy=sr.top-rect.top+sr.height/2;
+    } else { sx=rect.width/2; sy=30; }
+  }
+  const ex=rect.width/2, ey=rect.height/2;
+  for(let i=0;i<count;i++){
+    const c=document.createElement('div');
+    c.className='coin-particle';
+    const dl=Math.random()*0.3, dur=0.4+Math.random()*0.3;
+    const px=sx+(Math.random()-0.5)*40, py=sy+(Math.random()-0.5)*20;
+    const dx=ex+(Math.random()-0.5)*50+(i-count/2)*5, dy=ey+(Math.random()-0.5)*40;
+    c.style.cssText=`left:${px}px;top:${py}px;--dx:${dx-px}px;--dy:${dy-py}px;animation:coinFly ${dur}s ease-out ${dl}s forwards;width:22px;height:22px;`;
+    table.appendChild(c);
+    // When animation ends, move coin to pile on table
+    setTimeout(()=>{
+      c.remove();
+      if(pile){
+        const pc=document.createElement('div');
+        pc.className='pile-coin';
+        const layer=Math.floor(Math.random()*5);
+        const offsetX=(Math.random()-0.5)*70;
+        const offsetY=(Math.random()-0.5)*60+layer*3;
+        const rot=Math.random()*360;
+        const size=20;
+        pc.style.cssText=`left:${60+offsetX-size/2}px;top:${60+offsetY-size/2}px;width:${size}px;height:${size}px;transform:rotate(${rot}deg);opacity:${0.7+Math.random()*0.3};z-index:${layer};`;
+        pile.appendChild(pc);
+      }
+    },(dur+dl)*1000+50);
+  }
+}
+
+function clearCoinPile(){
+  const pile=document.getElementById('coinPile');
+  if(pile) pile.innerHTML='';
+}
+
 function addLog(type,msg){
   const log=document.getElementById('gameLog');
+  if(!log) return;
   const entry=document.createElement('div');
   entry.className=`log-entry log-${type}`;
   entry.textContent=msg;
